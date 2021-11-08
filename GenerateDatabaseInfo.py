@@ -21,8 +21,9 @@ def make_temp_kp(kp):
 data = []
 
 sift = cv2.SIFT_create()
-path1 = '../../../../../Multi_Modal_Image_Classifier/Multi_Modal_Image_Classifier/'
+path1 = '../Data_Set/'
 listing = os.listdir(path1)
+listing.remove('.git')
 for file in listing:
     img = cv2.imread(path1 + file)
 
