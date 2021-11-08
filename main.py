@@ -22,7 +22,7 @@ def make_kp(temp_kp):
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('EditedImage.png')  # Query Image
+image_query = cv2.imread('../CroppedImage.png')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -66,6 +66,7 @@ with open('training_data.pkl', 'rb') as inp:
             rgb_final_image = rgb_img1
             final_kp = kp
     # cv2.drawMatchesKnn expects list of lists as matches.
-    img3 = cv2.drawMatchesKnn(rgb_query, kp_query, rgb_final_image, final_kp, final_good, None, flags=2)
+    img3 = cv2.drawMatchesKnn(rgb_query, kp_query, rgb_final_image, final_kp, final_good[::100], None, flags=4)
+    img4 = cv2.drawKeypoints(rgb_query, kp_query, None, flags=cv2.DrawMatchesFlags_DRAW_RICH_KEYPOINTS)
 
 plt.imshow(img3), plt.show()
