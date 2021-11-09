@@ -22,6 +22,7 @@ def make_kp(temp_kp):
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
+
 image_query = cv2.imread('../EditedImage.png')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
@@ -29,6 +30,7 @@ kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
 with open('training_data.pkl', 'rb') as inp:
     data = pickle.load(inp)
+
     temp_kp = data[0][0]
     temp_des = data[0][1]
     for datum in data[1:]:
