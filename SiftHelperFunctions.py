@@ -22,11 +22,13 @@ def unpack_sift_octave(kpt):
 
 def make_kp(temp_kp):
     kp = []
+    centroid = []
     for point in temp_kp:
-        temp = cv2.KeyPoint(x=point[0][0], y=point[0][1], _size=point[1], _angle=point[2],
-                            _response=point[3], _octave=point[4], _class_id=point[5])
+        temp = cv2.KeyPoint(x=point[0][0], y=point[0][1], size=point[1], angle=point[2], response=point[3],
+                            octave=point[4], class_id=point[5])
         kp.append(temp)
-    return kp
+        centroid.append(point[6])
+    return kp, centroid
 
 
 def make_temp_kp(kp):

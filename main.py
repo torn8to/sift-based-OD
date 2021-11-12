@@ -30,7 +30,7 @@ with open('training_data.pkl', 'rb') as inp:
     temp_des = data[0][1]
     for datum in data[1:]:
         temp_kp.extend(datum[0])
-        temp_des = np.append(temp_des, datum[1],axis=0)
+        temp_des = np.append(temp_des, datum[1], axis=0)
 
         # Unecessary Code for visualization
         # img = cv2.imread(datum[2])
@@ -59,6 +59,13 @@ for m, n in matches:
         centroid_model.append(centroid[m.trainIdx])
         queryImage_kp.append(kp_query[m.queryIdx])
 
+# Every match has parameters
+# distance: the euclidean distance from the query descriptor to the training descriptor
+# imgIdx: Train image index
+# queryIdx: query descriptor index
+# trainIdx: train descriptor index
+
+
 max_octave = 0
 for i in range(len(model_kp)):
     octave, layer, scale = unpack_sift_octave(model_kp[i])
@@ -67,11 +74,9 @@ for i in range(len(model_kp)):
 # this means the actual number of octaves is 'n' + 2
 octaves = max_octave + 2
 
-# Every match has parameters
-# distance: the euclidean distance from the query descriptor to the training descriptor
-# imgIdx: Train image index
-# queryIdx: query descriptor index
-# trainIdx: train descriptor index
+img_width = len(gray_query)
+img_height = len(gray_query[0])
+
 
 hough_transform = []
 bin_x = 10
