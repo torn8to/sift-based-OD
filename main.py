@@ -9,7 +9,7 @@ from SiftHelperFunctions import *
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('../HeatWave.jpeg')  # Query Image
+image_query = cv2.imread('../RandomImage.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -94,7 +94,15 @@ best_bin_count = max(votes)
 best_bin_index = votes.index(best_bin_count)
 print(best_bin_index)
 
-plt.hist(delta, bins=num_bins)
+# Display histogram of delta data
+plt.hist([x[0] for x in delta], bins=num_bins)
 plt.ylabel('Num votes')
 plt.xlabel('bins')
 plt.show()
+
+# Plot keypoints for largest bin
+plot_kp = []
+for angle_diff, index in bins[best_bin_index]:
+    plot_kp.append(matching_keypoints[index][1])
+img = cv2.drawKeypoints(gray_query, plot_kp, None, flags=4)
+plt.imshow(img), plt.show()
