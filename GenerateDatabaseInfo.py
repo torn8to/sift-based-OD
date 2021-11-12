@@ -2,20 +2,13 @@ import cv2
 from matplotlib import pyplot as plt
 import os
 import pickle
+from SiftHelperFunctions import *
 
 
 def save_object(obj, filename):
     with open(filename, 'wb') as outp:  # Overwrites any existing file.
         pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
 
-
-def make_temp_kp(kp):
-    temp_kp = []
-    for point in kp:
-        temp = (point.pt, point.size, point.angle, point.response, point.octave,
-                point.class_id)
-        temp_kp.append(temp)
-    return temp_kp
 
 
 data = []
