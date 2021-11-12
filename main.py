@@ -9,7 +9,7 @@ from SiftHelperFunctions import *
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('Car8.jpg')  # Query Image
+image_query = cv2.imread('../HeatWave.jpeg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -76,6 +76,8 @@ We need to keepn track of the angle and the count
 '''
 
 delta = [modelImage_angle - srcImage_angle for modelImage_angle, srcImage_angle in zip(modelImage_angle, srcImage_angle)]
+# normalize angle differences between 180 and -180
+delta = [normalize_angle(x) for x in delta]
 delta.sort()
 
 # Create bins
@@ -126,4 +128,7 @@ best_bin_count = max(votes)
 best_bin_index = votes.index(best_bin_count)
 print(best_bin_index)
 
-plt.imshow(img), plt.show()
+plt.hist(delta, bins=13)
+plt.ylabel('Num votes')
+plt.xlabel('bins')
+plt.show()
