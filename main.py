@@ -10,15 +10,7 @@ from matplotlib import pyplot as plt
 import pickle
 from cluster_hough_transform import *
 import math
-
-def make_kp(temp_kp):
-    kp = []
-    centroid = []
-    for point in temp_kp:
-        temp = cv2.KeyPoint(x=point[0][0], y=point[0][1], size=point[1], angle=point[2], response=point[3], octave=point[4], class_id=point[5])
-        kp.append(temp)
-        centroid.append(point[6])
-    return kp, centroid
+from SiftHelperFunctions import *
 
 
 # Initiate SIFT detector
@@ -66,6 +58,14 @@ for m, n in matches:
         model_kp.append(kp[m.trainIdx])
         centroid_model.append(centroid[m.trainIdx])
         queryImage_kp.append(kp_query[m.queryIdx])
+
+max_octave = 0
+for i in range(len(model_kp)):
+    octave, layer, scale = unpack_sift_octave(model_kp[i])
+    max_octave = max(max_octave, octave)
+# octave returned from unpack_sift_octave is a value between -1 and some max 'n'
+# this means the actual number of octaves is 'n' + 2
+octaves = max_octave + 2
 
 # Every match has parameters
 # distance: the euclidean distance from the query descriptor to the training descriptor
