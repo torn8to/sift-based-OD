@@ -40,13 +40,14 @@ matches = bf.knnMatch(des_query, des, k=2)  # query ,database,nearest neighbors
 
 # Apply ratio test
 good_matches = []
-modelImage_kp = []
 queryImage_kp = []
+matching_keypoints = []
 for m, n in matches:
     if m.distance < 0.75 * n.distance or m.distance < 1.0:
         good_matches.append([m])
-        modelImage_kp.append(kp[m.trainIdx])
+        # Store the matching keypoints in a tuple in a list
         queryImage_kp.append(kp_query[m.queryIdx])
+        matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx]))
 
 # Every match has parameters
 # distance: the euclidean distance from the query descriptor to the training descriptor
@@ -55,18 +56,18 @@ for m, n in matches:
 # trainIdx: train descriptor index
 
 # cv2.drawMatchesKnn expects list of lists as matches.
-img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
+# img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 
-srcImage_angle = []
-modelImage_angle = []
+
 index_list = []  # Needed only if the list is not sorted based on index
-delta = []
-for i in queryImage_kp:
-    srcImage_angle.append(i.angle)
-    
 
-for i in modelImage_kp:
-    modelImage_angle.append(i.angle)
+count = 0
+delta = [] # list containing tuples of angle differences and the index to the matching keypoints
+# Determine the angle difference between matching keypoints
+for train_kp, query_kp in matching_keypoints:
+    value_tuple = (normalize_angle(train_kp.angle - query_kp.angle), count)
+    delta.append(value_tuple)
+    count += 1
 
 ''' 
 Calculate the difference in angles for each entry and form bins
@@ -75,60 +76,25 @@ Form a 2D array to achieve this
 We need to keepn track of the angle and the count
 '''
 
-delta = [modelImage_angle - srcImage_angle for modelImage_angle, srcImage_angle in zip(modelImage_angle, srcImage_angle)]
-# normalize angle differences between 180 and -180
-delta = [normalize_angle(x) for x in delta]
-delta.sort()
-
 # Create bins
+num_bins = 12  # Determine the number of bins we want to use
+angle_breakpoint = 360/num_bins  # break the angle cut offs based on the number of bins we have
+bins = [[] for x in range(num_bins)]  # Initialize the bins to be empty arrays
+for angle_diff, index in delta:  # Populate each bin
+    # The bin number is just the integer of the angle difference divided by the angle breakpoint with an added offset to
+    # make sure the values are between 0 and num_bins instead of -num_bins/2 and num_bins/2
+    bin_number = int(angle_diff/angle_breakpoint + num_bins/2)
+    # populate the bin with the angle difference and the index from matching_keypoints
+    bins[bin_number].append((angle_diff, index))
 
-bin_1 = []
-bin_2 = []
-bin_3 = []
-bin_4 = []
-bin_5 = []
-bin_6 = []
-bin_7 = []
-bin_8 = []
-bin_9 = []
-bin_10 = []
-bin_11 = []
-bin_12 = []
-count = []
-for i in delta:
-    if (-180 < i <= -150):
-        bin_1.append(i)
-    if (-150 < i <= -120):
-        bin_2.append(i)
-    if (-120 < i <= -90):
-        bin_3.append(i)
-    if (-90 < i <= -60):
-        bin_4.append(i)
-    if (-60 < i <= -30):
-        bin_5.append(i)
-    if (-30 < i <= 0):
-        bin_6.append(i)
-    if (0 < i <= 30):
-        bin_7.append(i)
-    if (30 < i <= 60):
-        bin_8.append(i)
-    if (60 < i <= 90):
-        bin_9.append(i)
-    if (90 < i <= 120):
-        bin_10.append(i)
-    if (120 < i <= 150):
-        bin_11.append(i)
-    if (150 < i <= 180):
-        bin_12.append(i)
 
-votes = [len(bin_1), len(bin_2), len(bin_3), len(bin_4), len(bin_5), len(bin_6), len(bin_7), len(bin_8), len(bin_9), len(bin_10), len(bin_11), len(bin_12)]
-
+votes = [len(b) for b in bins]  # tally up the number of elements in each bin
 
 best_bin_count = max(votes)
 best_bin_index = votes.index(best_bin_count)
 print(best_bin_index)
 
-plt.hist(delta, bins=13)
+plt.hist(delta, bins=num_bins)
 plt.ylabel('Num votes')
 plt.xlabel('bins')
 plt.show()
