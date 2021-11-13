@@ -9,7 +9,7 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_20211027_170237.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/IMG_20211111_155814.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -28,6 +28,7 @@ kp = make_kp(temp_kp)
 des = temp_des
 
 # Create a centroid from the model keypoint positions
+# TODO Will need to be changed for multiple model images
 centroid = (0, 0)
 count = 0
 max_octave = 0
@@ -68,6 +69,7 @@ for m, n in matches:
 
 
 # INITIAL VALUES
+# TODO will need to be changed for multiple models
 IMG_WIDTH = 1958
 IMG_HEIGHT = 1575
 angle_breakpoint = 30.0  # degrees
@@ -75,9 +77,12 @@ scale_breakpoint = 2.0
 
 # Generate Pose guess of keypoints
 pose_bins = {}
+relaxed_bins = {}
 for kpM, kpQ in matching_keypoints:
     octaveM, layerM, scaleM = unpack_sift_octave(kpM)  # unpack octave information for model keypoint
     octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)  # unpack octave information for query keypoint
+
+    # Changed from LOWE
     x_pos_breakpoint = IMG_WIDTH * scaleQ / 32.0  # determine x axis bucket size in pixels
     y_pos_breakpoint = IMG_HEIGHT * scaleQ / 32.0  # determine y axis bucket size in pixels
 
@@ -93,16 +98,24 @@ for kpM, kpQ in matching_keypoints:
     # Get bucket locations
     possible_x_pos = [int(np.floor(pose_estimate[0] / x_pos_breakpoint) * x_pos_breakpoint),
                       int(np.ceil(pose_estimate[0] / x_pos_breakpoint) * x_pos_breakpoint)]
+
     possible_y_pos = [int(np.floor(pose_estimate[1] / y_pos_breakpoint) * y_pos_breakpoint),
                       int(np.ceil(pose_estimate[1] / y_pos_breakpoint) * y_pos_breakpoint)]
+
     possible_orientation = [int(np.floor(pose_estimate[2] / angle_breakpoint) * angle_breakpoint),
                             int(np.ceil(pose_estimate[2] / angle_breakpoint) * angle_breakpoint)]
-    possible_scale = [2 ** np.floor(np.log2(pose_estimate[3])),
-                      2 ** np.ceil(np.log2(pose_estimate[3]))]
+
+    possible_scale = [scale_breakpoint ** np.floor(np.log(pose_estimate[3])/np.log(scale_breakpoint)),
+                      scale_breakpoint ** np.ceil(np.log(pose_estimate[3])/np.log(scale_breakpoint))]
 
     for i in range(2):
         for j in range(2):
             for theta in range(2):
+                try:
+                    relaxed_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta])] += 1
+                except:
+                    relaxed_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta])] = 1
+
                 for s in range(2):
                     try:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
@@ -118,12 +131,20 @@ for key in pose_bins:
         print(pose_bins.get(key), key)
         max_pose = key
         max_vote = pose_bins.get(key)
-
 print(max_pose)
+
+max_relaxed = (0,0,0,0)
+max_relaxed_vote = 0
+for key in relaxed_bins:
+    if relaxed_bins.get(key) > max_relaxed_vote:
+        print(relaxed_bins.get(key), key)
+        max_relaxed = key
+        max_relaxed_vote = relaxed_bins.get(key)
+print(max_relaxed)
 
 ## VISUALIZATION ###############################################################
 fig, ax = plt.subplots()
-img = cv2.drawKeypoints(gray_query, kp_query, None, None, flags=4)
+img = cv2.drawKeypoints(gray_query, queryImage_kp, None, None, flags=4)
 plt.imshow(img)
 # add box to image
 rect_left_corner = (max(max_pose[0] - IMG_WIDTH * max_pose[3] / 2, 0),
@@ -131,7 +152,7 @@ rect_left_corner = (max(max_pose[0] - IMG_WIDTH * max_pose[3] / 2, 0),
 
 rect = patches.Rectangle(rect_left_corner,
                          IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], 0,
-                         linewidth=2, edgecolor='r', facecolor='none')
+                         linewidth=4, edgecolor='r', facecolor='none')
 #TODO Rotation of box if image is rotated
 ax.add_patch(rect)
 plt.show()
