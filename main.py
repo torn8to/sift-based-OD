@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
+from matplotlib import patches as patches
 import pickle
 from cv2 import sort
 from SiftHelperFunctions import *
@@ -8,7 +9,7 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/TrainingData/IMG_20211027_170135.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/IMG_20211027_170237.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -48,7 +49,7 @@ matches = bf.knnMatch(des_query, des, k=2)  # query ,database,nearest neighbors
 # Apply ratio test
 good_matches = []
 queryImage_kp = []
-matching_keypoints = []
+matching_keypoints = [] # Tuples of (kpM, kpQ)
 for m, n in matches:
     if m.distance < 0.75 * n.distance or m.distance < 1.0:
         good_matches.append([m])
@@ -77,17 +78,18 @@ pose_bins = {}
 for kpM, kpQ in matching_keypoints:
     octaveM, layerM, scaleM = unpack_sift_octave(kpM)  # unpack octave information for model keypoint
     octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)  # unpack octave information for query keypoint
-    x_pos_breakpoint = IMG_WIDTH*scaleQ/4.0  # determine x axis bucket size in pixels
-    y_pos_breakpoint = IMG_HEIGHT*scaleQ/4.0  # determine y axis bucket size in pixels
+    x_pos_breakpoint = IMG_WIDTH*scaleQ/16.0  # determine x axis bucket size in pixels
+    y_pos_breakpoint = IMG_HEIGHT*scaleQ/16.0  # determine y axis bucket size in pixels
 
     pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
 
+    scale_diff = scaleM / scaleQ
     x_diff = kpQ.pt[0] - kpM.pt[0]
     y_diff = kpQ.pt[1] - kpM.pt[1]
     orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
-    scale_diff = scaleQ/scaleM
 
-    pose_estimate = (centroid[0] - x_diff, centroid[1] - y_diff, orientation_diff, scale_diff)
+
+    pose_estimate = (centroid[0] + x_diff, centroid[1] + y_diff, orientation_diff, scale_diff)
 
     # Get bucket locations
     possible_x_pos = [int(np.floor(pose_estimate[0]/x_pos_breakpoint)*x_pos_breakpoint),
@@ -117,6 +119,16 @@ for key in pose_bins:
         max_pose = key
 
 print(max_pose)
-img = cv2.drawKeypoints(gray_query,kp,None,None,flags=4)
-plt.imshow(img), plt.show()
+
+## VISUALIZATION ###############################################################
+fig, ax = plt.subplots()
+img = cv2.drawKeypoints(gray_query, kp_query, None, None, flags=4)
+plt.imshow(img)
+# add box to image
+rect_left_corner = (max(max_pose[0] - IMG_WIDTH*max_pose[3]/2, 0), max(max_pose[1] - IMG_HEIGHT*max_pose[3]/2,0))
+rect = patches.Rectangle(rect_left_corner,
+                         IMG_WIDTH*max_pose[3], IMG_HEIGHT*max_pose[3], 0,
+                         linewidth=2, edgecolor='r', facecolor='none')
+ax.add_patch(rect)
+plt.show()
 print("done")
