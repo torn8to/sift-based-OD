@@ -8,31 +8,35 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-
-image_query = cv2.imread('../RandomImage.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/IMG_20211027_170135.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
 with open('training_data.pkl', 'rb') as inp:
-    data = pickle.load(inp)
+    data = pickle.load(inp)  # Open training data and load it
 
-    temp_kp = data[0][0]
-    temp_des = data[0][1]
-    for datum in data[1:]:
-        temp_kp.extend(datum[0])
-        temp_des = np.append(temp_des, datum[1],axis=0)
-
-        # Unecessary Code for visualization
-        # img = cv2.imread(datum[2])
-        #
-        # # image comparison
-        # rgb_img1 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        # gray_img1 = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
+    temp_des = data[0][1]  # the descriptor vector, grab the first elment in the data set
+    for datum in data[1:]:  # for the remaining elements append them to the previous two lists
+        temp_kp.extend(datum[0])  # have to use extend here, because we don't want cascading lists
+        temp_des = np.append(temp_des, datum[1], axis=0)  # for numpy vectors we append
 
 # Organize model key points and descriptors into single vector/matrix
 kp = make_kp(temp_kp)
 des = temp_des
+
+# Create a centroid from the model keypoint positions
+centroid = (0, 0)
+count = 0
+max_octave = 0
+for keypoint in kp:
+    octave, _, _ = unpack_sift_octave(keypoint)
+    max_octave = max(max_octave,octave)
+    x, y = keypoint.pt
+    new_x = (centroid[0] * count + x) / (count + 1)
+    new_y = (centroid[1] * count + y) / (count + 1)
+    centroid = (new_x, new_y)
 
 # BFMatcher with default params
 bf = cv2.BFMatcher()
@@ -58,51 +62,36 @@ for m, n in matches:
 # cv2.drawMatchesKnn expects list of lists as matches.
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 
-
-index_list = []  # Needed only if the list is not sorted based on index
-
-count = 0
-delta = [] # list containing tuples of angle differences and the index to the matching keypoints
-# Determine the angle difference between matching keypoints
-for train_kp, query_kp in matching_keypoints:
-    value_tuple = (normalize_angle(train_kp.angle - query_kp.angle), count)
-    delta.append(value_tuple)
-    count += 1
-
-''' 
-Calculate the difference in angles for each entry and form bins
-Threshold will be +- 20 degrees
-Form a 2D array to achieve this
-We need to keepn track of the angle and the count
-'''
-
-# Create bins
-num_bins = 12  # Determine the number of bins we want to use
-angle_breakpoint = 360/num_bins  # break the angle cut offs based on the number of bins we have
-bins = [[] for x in range(num_bins)]  # Initialize the bins to be empty arrays
-for angle_diff, index in delta:  # Populate each bin
-    # The bin number is just the integer of the angle difference divided by the angle breakpoint with an added offset to
-    # make sure the values are between 0 and num_bins instead of -num_bins/2 and num_bins/2
-    bin_number = int(angle_diff/angle_breakpoint + num_bins/2)
-    # populate the bin with the angle difference and the index from matching_keypoints
-    bins[bin_number].append((angle_diff, index))
-
-
-votes = [len(b) for b in bins]  # tally up the number of elements in each bin
-
-best_bin_count = max(votes)
-best_bin_index = votes.index(best_bin_count)
-print(best_bin_index)
-
-# Display histogram of delta data
-plt.hist([x[0] for x in delta], bins=num_bins)
-plt.ylabel('Num votes')
-plt.xlabel('bins')
-plt.show()
-
 # Plot keypoints for largest bin
 plot_kp = []
 for angle_diff, index in bins[best_bin_index]:
     plot_kp.append(matching_keypoints[index][1])
 img = cv2.drawKeypoints(gray_query, plot_kp, None, flags=4)
 plt.imshow(img), plt.show()
+
+# Generate Pose guess of keypoints
+angle_breakpoint = 30  # degrees
+
+x_pos_breakpoint = int(3000/4)
+y_pos_breakpoint = int(4000/4)
+
+pose_bins = {}
+for kpM, kpQ in matching_keypoints:
+    octaveM, layerM, scaleM = unpack_sift_octave(kpM)
+    octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)
+    pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
+
+    x_diff = kpM.pt[0] - kpQ.pt[0]
+    y_diff = kpM.pt[1] - kpQ.pt[1]
+    orientation_diff = normalize_angle(kpM.angle - kpQ.angle)
+    scale_diff = scaleM - scaleQ
+
+    pose_estimate = (centroid[0] - x_diff, centroid[1] - y_diff, orientation_diff, 0)
+    for i in range(4):
+        for j in range(2):
+            try:
+                pose_bins[pose_estimate] += 1
+            except:
+                pose_bins[pose_estimate] = 1
+
+print("done")

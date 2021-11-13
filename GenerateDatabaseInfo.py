@@ -14,9 +14,9 @@ def save_object(obj, filename):
 data = []
 
 sift = cv2.SIFT_create()
-path1 = '../Data_Set/'
+path1 = '../Data_Set/TrainingData/'
 listing = os.listdir(path1)
-listing.remove('.git')
+# listing.remove('.git')
 for file in listing:
     img = cv2.imread(path1 + file)
 
