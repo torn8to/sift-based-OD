@@ -32,11 +32,14 @@ count = 0
 max_octave = 0
 for keypoint in kp:
     octave, _, _ = unpack_sift_octave(keypoint)
-    max_octave = max(max_octave,octave)
+    max_octave = max(max_octave, octave)
     x, y = keypoint.pt
+
+    # Just averaging x and y positions
     new_x = (centroid[0] * count + x) / (count + 1)
     new_y = (centroid[1] * count + y) / (count + 1)
     centroid = (new_x, new_y)
+    count += 1
 
 # BFMatcher with default params
 bf = cv2.BFMatcher()
@@ -107,11 +110,13 @@ for kpM, kpQ in matching_keypoints:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                    possible_scale[s])] = 1
 
+max_pose = (0, 0, 0, 0)
+max_vote = 0
 for key in pose_bins:
-    if pose_bins.get(key) > 500:
-        print(key, pose_bins.get(key))
+    if pose_bins.get(key) > max_vote:
+        max_pose = key
 
-print(centroid)
+print(max_pose)
 img = cv2.drawKeypoints(gray_query,kp,None,None,flags=4)
 plt.imshow(img), plt.show()
 print("done")
