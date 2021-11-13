@@ -132,6 +132,7 @@ rect_left_corner = (max(max_pose[0] - IMG_WIDTH * max_pose[3] / 2, 0),
 rect = patches.Rectangle(rect_left_corner,
                          IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], 0,
                          linewidth=2, edgecolor='r', facecolor='none')
+#TODO Rotation of box if image is rotated
 ax.add_patch(rect)
 plt.show()
 print("done")
