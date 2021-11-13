@@ -36,3 +36,11 @@ def make_temp_kp(kp):
                 point.class_id)
         temp_kp.append(temp)
     return temp_kp
+
+
+def normalize_angle(angle):
+    angle = np.fmod(angle, 360)
+    angle = np.fmod(angle + 360, 360)
+    if (angle > 180):
+        angle -= 360
+    return angle
