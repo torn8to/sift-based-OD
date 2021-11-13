@@ -8,7 +8,7 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_20211027_170135.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/TrainingData/IMG_20211027_170135.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -62,36 +62,56 @@ for m, n in matches:
 # cv2.drawMatchesKnn expects list of lists as matches.
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 
-# Plot keypoints for largest bin
-plot_kp = []
-for angle_diff, index in bins[best_bin_index]:
-    plot_kp.append(matching_keypoints[index][1])
-img = cv2.drawKeypoints(gray_query, plot_kp, None, flags=4)
-plt.imshow(img), plt.show()
+
+# INITIAL VALUES
+IMG_WIDTH = 1958
+IMG_HEIGHT = 1575
+angle_breakpoint = 30.0  # degrees
+scale_breakpoint = 2.0
 
 # Generate Pose guess of keypoints
-angle_breakpoint = 30  # degrees
-
-x_pos_breakpoint = int(3000/4)
-y_pos_breakpoint = int(4000/4)
-
 pose_bins = {}
 for kpM, kpQ in matching_keypoints:
-    octaveM, layerM, scaleM = unpack_sift_octave(kpM)
-    octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)
+    octaveM, layerM, scaleM = unpack_sift_octave(kpM)  # unpack octave information for model keypoint
+    octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)  # unpack octave information for query keypoint
+    x_pos_breakpoint = IMG_WIDTH*scaleQ/4.0  # determine x axis bucket size in pixels
+    y_pos_breakpoint = IMG_HEIGHT*scaleQ/4.0  # determine y axis bucket size in pixels
+
     pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
 
-    x_diff = kpM.pt[0] - kpQ.pt[0]
-    y_diff = kpM.pt[1] - kpQ.pt[1]
-    orientation_diff = normalize_angle(kpM.angle - kpQ.angle)
-    scale_diff = scaleM - scaleQ
+    x_diff = kpQ.pt[0] - kpM.pt[0]
+    y_diff = kpQ.pt[1] - kpM.pt[1]
+    orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
+    scale_diff = scaleQ/scaleM
 
-    pose_estimate = (centroid[0] - x_diff, centroid[1] - y_diff, orientation_diff, 0)
-    for i in range(4):
+    pose_estimate = (centroid[0] - x_diff, centroid[1] - y_diff, orientation_diff, scale_diff)
+
+    # Get bucket locations
+    possible_x_pos = [int(np.floor(pose_estimate[0]/x_pos_breakpoint)*x_pos_breakpoint),
+                      int(np.ceil(pose_estimate[0]/x_pos_breakpoint)*x_pos_breakpoint)]
+    possible_y_pos = [int(np.floor(pose_estimate[1] / y_pos_breakpoint) * y_pos_breakpoint),
+                      int(np.ceil(pose_estimate[1] / y_pos_breakpoint) * y_pos_breakpoint)]
+    possible_orientation = [int(np.floor(pose_estimate[2]/angle_breakpoint)*angle_breakpoint),
+                            int(np.ceil(pose_estimate[2]/angle_breakpoint)*angle_breakpoint)]
+    possible_scale = [int(2 ** np.floor(np.log2(pose_estimate[3]))),
+                      int(2 ** np.ceil(np.log2(pose_estimate[3])))]
+
+    for i in range(2):
         for j in range(2):
-            try:
-                pose_bins[pose_estimate] += 1
-            except:
-                pose_bins[pose_estimate] = 1
+            for theta in range(2):
+                for s in range(2):
+                    try:
+                        pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                   possible_scale[s])] += 1
+                    except:
+                        pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                   possible_scale[s])] = 1
 
+for key in pose_bins:
+    if pose_bins.get(key) > 500:
+        print(key, pose_bins.get(key))
+
+print(centroid)
+img = cv2.drawKeypoints(gray_query,kp,None,None,flags=4)
+plt.imshow(img), plt.show()
 print("done")
