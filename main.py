@@ -49,7 +49,7 @@ matches = bf.knnMatch(des_query, des, k=2)  # query ,database,nearest neighbors
 # Apply ratio test
 good_matches = []
 queryImage_kp = []
-matching_keypoints = [] # Tuples of (kpM, kpQ)
+matching_keypoints = []  # Tuples of (kpM, kpQ)
 for m, n in matches:
     if m.distance < 0.75 * n.distance or m.distance < 1.0:
         good_matches.append([m])
@@ -78,8 +78,8 @@ pose_bins = {}
 for kpM, kpQ in matching_keypoints:
     octaveM, layerM, scaleM = unpack_sift_octave(kpM)  # unpack octave information for model keypoint
     octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)  # unpack octave information for query keypoint
-    x_pos_breakpoint = IMG_WIDTH*scaleQ/16.0  # determine x axis bucket size in pixels
-    y_pos_breakpoint = IMG_HEIGHT*scaleQ/16.0  # determine y axis bucket size in pixels
+    x_pos_breakpoint = IMG_WIDTH * scaleQ / 32.0  # determine x axis bucket size in pixels
+    y_pos_breakpoint = IMG_HEIGHT * scaleQ / 32.0  # determine y axis bucket size in pixels
 
     pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
 
@@ -88,18 +88,17 @@ for kpM, kpQ in matching_keypoints:
     y_diff = kpQ.pt[1] - kpM.pt[1]
     orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
 
-
     pose_estimate = (centroid[0] + x_diff, centroid[1] + y_diff, orientation_diff, scale_diff)
 
     # Get bucket locations
-    possible_x_pos = [int(np.floor(pose_estimate[0]/x_pos_breakpoint)*x_pos_breakpoint),
-                      int(np.ceil(pose_estimate[0]/x_pos_breakpoint)*x_pos_breakpoint)]
+    possible_x_pos = [int(np.floor(pose_estimate[0] / x_pos_breakpoint) * x_pos_breakpoint),
+                      int(np.ceil(pose_estimate[0] / x_pos_breakpoint) * x_pos_breakpoint)]
     possible_y_pos = [int(np.floor(pose_estimate[1] / y_pos_breakpoint) * y_pos_breakpoint),
                       int(np.ceil(pose_estimate[1] / y_pos_breakpoint) * y_pos_breakpoint)]
-    possible_orientation = [int(np.floor(pose_estimate[2]/angle_breakpoint)*angle_breakpoint),
-                            int(np.ceil(pose_estimate[2]/angle_breakpoint)*angle_breakpoint)]
-    possible_scale = [int(2 ** np.floor(np.log2(pose_estimate[3]))),
-                      int(2 ** np.ceil(np.log2(pose_estimate[3])))]
+    possible_orientation = [int(np.floor(pose_estimate[2] / angle_breakpoint) * angle_breakpoint),
+                            int(np.ceil(pose_estimate[2] / angle_breakpoint) * angle_breakpoint)]
+    possible_scale = [2 ** np.floor(np.log2(pose_estimate[3])),
+                      2 ** np.ceil(np.log2(pose_estimate[3]))]
 
     for i in range(2):
         for j in range(2):
@@ -116,7 +115,9 @@ max_pose = (0, 0, 0, 0)
 max_vote = 0
 for key in pose_bins:
     if pose_bins.get(key) > max_vote:
+        print(pose_bins.get(key), key)
         max_pose = key
+        max_vote = pose_bins.get(key)
 
 print(max_pose)
 
@@ -125,9 +126,11 @@ fig, ax = plt.subplots()
 img = cv2.drawKeypoints(gray_query, kp_query, None, None, flags=4)
 plt.imshow(img)
 # add box to image
-rect_left_corner = (max(max_pose[0] - IMG_WIDTH*max_pose[3]/2, 0), max(max_pose[1] - IMG_HEIGHT*max_pose[3]/2,0))
+rect_left_corner = (max(max_pose[0] - IMG_WIDTH * max_pose[3] / 2, 0),
+                    max(max_pose[1] - IMG_HEIGHT * max_pose[3] / 2, 0))
+
 rect = patches.Rectangle(rect_left_corner,
-                         IMG_WIDTH*max_pose[3], IMG_HEIGHT*max_pose[3], 0,
+                         IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], 0,
                          linewidth=2, edgecolor='r', facecolor='none')
 ax.add_patch(rect)
 plt.show()
