@@ -46,7 +46,7 @@ def make_kp(temp_kp):
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Sift-Implementation/Test_image5.jpeg')  # Query Image
+image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Sift-Implementation/Test_image6.jpeg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -109,10 +109,10 @@ img_width = image_query.shape[1]
 # print(img_height)
 # print(img_width)
 # octaves = 128
-bin_x = 10
-bin_y = 10
-bin_theta = 10
-bin_sigma = 10
+bin_x = 25
+bin_y = 25
+bin_theta = 25
+bin_sigma = 25
 
 ##Initialize 4 dimensional array for estimating the centroid of object 
 
@@ -139,6 +139,7 @@ for index, element in enumerate(matching_keypoints):
     m_octave, m_layer, m_scale = unpack_sift_octave(kpM)
     m_theta = kpM.angle
     #translation and scaling
+    # scale = (1/2)**(q_octave - m_octave)
     # scale = q_scale / m_scale
     scale = kpQ.size / kpM.size
     translated_x = (m_centroid[0] - m_x) * scale
@@ -162,7 +163,7 @@ for index, element in enumerate(matching_keypoints):
     i_theta = int(i_theta_prime % bin_theta)
     ##determine the scale index
     n_oct = 4 ##########Assuming number of octaves as 4
-    i_sigma = int((math.log(scale, 2) / (2 * (max_octave - 1)) + 0.5) * bin_sigma)
+    i_sigma = int((math.log(scale, 2) / (2 * (max_octave + 2- 1) + 0.5) * bin_sigma))
     i_sigma = max(0, i_sigma)                           ## making sure the index does not go out of range
     i_sigma = min(i_sigma, bin_sigma - 1)               ## making sure the index does not go out of range
     for w in range(2):
