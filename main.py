@@ -139,9 +139,11 @@ for index, element in enumerate(matching_keypoints):
     m_octave, m_layer, m_scale = unpack_sift_octave(kpM)
     m_theta = kpM.angle
     #translation and scaling
-    # scale = (1/2)**(q_octave - m_octave)
     # scale = q_scale / m_scale
-    scale = kpQ.size / kpM.size
+    scale = kpQ.size / kpM.size                         ##Decided to use the size attribute of the keypoint for scaling because
+                                                        ## using the scale field extracted from the unpack_sift_octave() function
+                                                        ## resulted in math errors while calculating log(scale, 2) which is 
+                                                        ## required for estimating the bin index for scaling
     translated_x = (m_centroid[0] - m_x) * scale
     translated_y = (m_centroid[1] - m_y) * scale
     #rotation
@@ -163,6 +165,8 @@ for index, element in enumerate(matching_keypoints):
     i_theta = int(i_theta_prime % bin_theta)
     ##determine the scale index
     n_oct = 4                           ##########Assuming number of octaves used by the opencv sift_create() as 4
+                                        ########## using the max_octave extracted from the unpack_sift_octave function also works
+                                        ########## but the field does not seem correct as it is negative in certain keypoints
     i_sigma = int((math.log(scale, 2) / (2 * (n_oct- 1) + 0.5) * bin_sigma))
     i_sigma = max(0, i_sigma)                           ## making sure the index does not go out of range
     i_sigma = min(i_sigma, bin_sigma - 1)               ## making sure the index does not go out of range
