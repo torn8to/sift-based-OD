@@ -123,7 +123,7 @@ for kpM, kpQ, img_size, img_centroid in matching_keypoints:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                    possible_scale[s])][1] = (new_width, new_height)
 
-                    except:
+                    except KeyError:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                    possible_scale[s])] = [1, img_size]
 
@@ -132,12 +132,12 @@ des_img_size = (0, 0)
 max_vote = 0
 for key in pose_bins:
     if pose_bins.get(key)[0] > max_vote:
-        print(pose_bins.get(key)[0], key)
+        print("Number of votes: ", pose_bins.get(key)[0], "for pose ", key)
         max_pose = key
         des_img_size = pose_bins.get(key)[1]
         max_vote = pose_bins.get(key)[0]
-print(max_pose)
-print(des_img_size)
+print("Most Voted Pose: ", max_pose)
+print("Box Size: ", des_img_size)
 
 ## VISUALIZATION ###############################################################
 fig, ax = plt.subplots()
