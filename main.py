@@ -149,32 +149,6 @@ IMG_HEIGHT = des_img_size[1]
 x_shift = -IMG_WIDTH * max_pose[3] / 2
 y_shift = -IMG_HEIGHT * max_pose[3] / 2
 
-# Frame transformations to align box properly after rotation
-# Denavit-Hartenberg parameters for 1st transform
-theta1 = np.arctan2(max_pose[1], max_pose[0]) - np.pi
-a1 = -np.sqrt(max_pose[0]**2 + max_pose[1]**2)
-
-T01 = np.matrix([[np.cos(theta1), -np.sin(theta1), 0, a1*np.cos(theta1)],
-                 [np.sin(theta1),  np.cos(theta1), 0, a1*np.sin(theta1)],
-                 [0,               0,              1, 0],
-                 [0,               0,              0, 1]])
-
-# Denavit-Hartenberg Parameters for 2nd transform
-theta2 = np.arctan2(y_shift, x_shift)-theta1
-T12 = np.matrix([[np.cos(theta2), -np.sin(theta2), 0, 0],
-                 [np.sin(theta2),  np.cos(theta2), 0, 0],
-                 [0,               0,              1, 0],
-                 [0,               0,              0, 1]])
-
-# Location of left right corner with respect to center point of rectangle in that frame
-pb_prime = np.matrix([[np.cos(np.deg2rad(max_pose[2]))*np.sqrt(x_shift**2 + y_shift**2)],
-                      [np.sin(np.deg2rad(max_pose[2]))*np.sqrt(x_shift**2 + y_shift**2)], [0], [1]])
-
-# matrix multiplication
-T02 = np.matmul(T01, T12)
-left_corner_pose = np.matmul(T02, pb_prime)
-# End of Frame transformations
-
 # simpler version of whats above
 rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2]))*x_shift - np.sin(np.deg2rad(max_pose[2]))*y_shift,
                     max_pose[1] + np.sin(np.deg2rad(max_pose[2]))*x_shift + np.cos(np.deg2rad(max_pose[2]))*y_shift)
