@@ -65,7 +65,6 @@ scale_breakpoint = 2.0
 
 # Generate Pose guess of keypoints
 pose_bins = {}
-relaxed_bins = {}
 for kpM, kpQ, img_size, img_centroid in matching_keypoints:
 
     octaveM, layerM, scaleM = unpack_sift_octave(kpM)  # unpack octave information for model keypoint
@@ -100,11 +99,6 @@ for kpM, kpQ, img_size, img_centroid in matching_keypoints:
     for i in range(2):
         for j in range(2):
             for theta in range(2):
-                try:
-                    relaxed_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta])] += 1
-                except:
-                    relaxed_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta])] = 1
-
                 for s in range(2):
                     try:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
@@ -121,15 +115,6 @@ for key in pose_bins:
         max_pose = key
         max_vote = pose_bins.get(key)
 print(max_pose)
-
-max_relaxed = (0,0,0,0)
-max_relaxed_vote = 0
-for key in relaxed_bins:
-    if relaxed_bins.get(key) > max_relaxed_vote:
-        print(relaxed_bins.get(key), key)
-        max_relaxed = key
-        max_relaxed_vote = relaxed_bins.get(key)
-print(max_relaxed)
 
 ## VISUALIZATION ###############################################################
 fig, ax = plt.subplots()
