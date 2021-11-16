@@ -161,6 +161,7 @@ for index, element in enumerate(matching_keypoints):
     ##To allow for the rotations by -pi or pi to be close together
     i_theta = int(i_theta_prime % bin_theta)
     ##determine the scale index
+    n_oct = 4 ##########Assuming number of octaves as 4
     i_sigma = int((math.log(scale, 2) / (2 * (max_octave - 1)) + 0.5) * bin_sigma)
     i_sigma = max(0, i_sigma)                           ## making sure the index does not go out of range
     i_sigma = min(i_sigma, bin_sigma - 1)               ## making sure the index does not go out of range
@@ -219,10 +220,11 @@ print(len(best_matches_kp_query))
 ## VISUALIZATION ###############################################################
 
 fig, ax = plt.subplots()
-img = cv2.drawKeypoints(rgb_query, best_matches_kp_query, None, None, flags=4)
+img = cv2.drawKeypoints(rgb_query, best_matches_kp_query, None, flags=4)
+# img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=4)
 plt.imshow(img)
 # add box to image
-temp = 0.025
+temp = 0.05
 for pose in best_pose:
     x_c = pose[0]*img_width / bin_x
     y_c = pose[1]*img_height / bin_y
@@ -231,7 +233,7 @@ for pose in best_pose:
 
     rect = patches.Rectangle(rect_left_corner,
                          img_width * temp, img_height * temp, 0,
-                         linewidth=0.5, edgecolor='r', facecolor='none')
+                         linewidth=3, edgecolor='r', facecolor='none')
 #TODO Rotation of box if image is rotated
     ax.add_patch(rect)
 plt.show()

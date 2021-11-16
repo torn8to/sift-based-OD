@@ -35,9 +35,9 @@ def make_temp_kp(kp, shape):
 data = []
 
 sift = cv2.SIFT_create()
-path1 = '/home/prajwal/Desktop/cv_group_project/Data_Set/'
+path1 = '/home/prajwal/Desktop/cv_group_project/D1/'
 listing = os.listdir(path1)
-listing.remove('.git')
+# listing.remove('.git')
 for file in listing:
     img = cv2.imread(path1 + file)
     shape = img.shape
