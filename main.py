@@ -9,7 +9,7 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_20211027_170237.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/IMG_Standing_Rotated.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -25,8 +25,8 @@ with open('training_data.pkl', 'rb') as inp:
     temp_des = data[0][1]  # the descriptor vector, grab the first element in the data set
     for datum in data[1:]:  # for the remaining elements append them to the previous two lists
         temp_kp.extend(datum[0])  # have to use extend here, because we don't want cascading lists
-        img_size_list.extend([data[0][2]] * len(data[0][0]))  # maintaining list of img_size for each keypoint
-        img_centroid_list.extend([data[0][3]] * len(data[0][0]))  # maintain centroid for each keypoint
+        img_size_list.extend([datum[2]] * len(datum[0]))  # maintaining list of img_size for each keypoint
+        img_centroid_list.extend([datum[3]] * len(datum[0]))  # maintain centroid for each keypoint
         temp_des = np.append(temp_des, datum[1], axis=0)  # for numpy vectors we append
 
 # Organize model key points and descriptors into single vector/matrix
@@ -101,8 +101,28 @@ for kpM, kpQ, img_size, img_centroid in matching_keypoints:
             for theta in range(2):
                 for s in range(2):
                     try:
+                        """
+                        We first update the width and height of our image using the average of all widths
+                        and heights used
+                        """
+                        count = pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                           possible_scale[s])][0]
+                        old_width = pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                               possible_scale[s])][1][0]
+                        old_height = pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                                possible_scale[s])][1][1]
+
+                        new_width = (old_width * count + img_size[0]) / (count + 1)
+                        new_height = (old_height * count + img_size[1]) / (count + 1)
+
+                        """
+                        Then we actually update the vote
+                        """
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                    possible_scale[s])][0] += 1
+                        pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                   possible_scale[s])][1] = (new_width, new_height)
+
                     except:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                    possible_scale[s])] = [1, img_size]
@@ -117,6 +137,7 @@ for key in pose_bins:
         des_img_size = pose_bins.get(key)[1]
         max_vote = pose_bins.get(key)[0]
 print(max_pose)
+print(des_img_size)
 
 ## VISUALIZATION ###############################################################
 fig, ax = plt.subplots()
