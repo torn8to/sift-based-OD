@@ -17,6 +17,7 @@ sift = cv2.SIFT_create()
 path1 = 'TrainingData/'
 listing = os.listdir(path1)
 # listing.remove('.git')
+sum = 0
 for file in listing:
     img = cv2.imread(path1 + file)
 
@@ -27,10 +28,12 @@ for file in listing:
 
     # find the keypoints and descriptors with SIFT
     kp, des = sift.detectAndCompute(gray_img, None)
-    get_centroid
+
 
     temp_kp = make_temp_kp(kp)
     datum = [temp_kp, des, path1 + file]  # TODO Get centroid, Img width, and img height
     data.append(datum)
+    sum = sum + len(temp_kp)
 
-save_object(data, 'training_data.pkl')
+save_object(data, 'training_car.pkl')
+print(sum)
