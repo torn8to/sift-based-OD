@@ -27,10 +27,13 @@ for file in listing:
 
     # find the keypoints and descriptors with SIFT
     kp, des = sift.detectAndCompute(gray_img, None)
-    get_centroid
+    img_size = (len(gray_img[0]), len(gray_img))
+
+    centroid = get_centroid(kp)
+    # centroid = (img_size[0]/2, img_size[1]/2)
 
     temp_kp = make_temp_kp(kp)
-    datum = [temp_kp, des, path1 + file]  # TODO Get centroid, Img width, and img height
+    datum = [temp_kp, des, img_size, centroid, path1 + file]  # TODO Get centroid, Img width, and img height
     data.append(datum)
 
 save_object(data, 'training_data.pkl')

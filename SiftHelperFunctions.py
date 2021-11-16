@@ -44,3 +44,20 @@ def normalize_angle(angle):
     if (angle > 180):
         angle -= 360
     return angle
+
+
+def get_centroid(kp):
+    centroid = (0, 0)
+    count = 0
+    max_octave = 0
+    for keypoint in kp:
+        octave, _, _ = unpack_sift_octave(keypoint)
+        max_octave = max(max_octave, octave)
+        x, y = keypoint.pt
+
+        # Just averaging x and y positions
+        new_x = (centroid[0] * count + x) / (count + 1)
+        new_y = (centroid[1] * count + y) / (count + 1)
+        centroid = (new_x, new_y)
+        count += 1
+    return centroid

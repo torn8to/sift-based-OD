@@ -9,39 +9,29 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_20211027_170237_Rotated.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/IMG_20211027_170237.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
+img_size_list = []
+img_centroid_list = []
 with open('training_data.pkl', 'rb') as inp:
     data = pickle.load(inp)  # Open training data and load it
 
     temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
-    temp_des = data[0][1]  # the descriptor vector, grab the first elment in the data set
+    img_size_list = [data[0][2]] * len(data[0][0])
+    img_centroid_list = [data[0][3]]*len(data[0][0])
+    temp_des = data[0][1]  # the descriptor vector, grab the first element in the data set
     for datum in data[1:]:  # for the remaining elements append them to the previous two lists
         temp_kp.extend(datum[0])  # have to use extend here, because we don't want cascading lists
+        img_size_list.extend([data[0][2]] * len(data[0][0]))  # maintaining list of img_size for each keypoint
+        img_centroid_list.extend([data[0][3]] * len(data[0][0]))  # maintain centroid for each keypoint
         temp_des = np.append(temp_des, datum[1], axis=0)  # for numpy vectors we append
 
 # Organize model key points and descriptors into single vector/matrix
 kp = make_kp(temp_kp)
 des = temp_des
-
-# Create a centroid from the model keypoint positions
-# TODO Will need to be changed for multiple model images
-centroid = (0, 0)
-count = 0
-max_octave = 0
-for keypoint in kp:
-    octave, _, _ = unpack_sift_octave(keypoint)
-    max_octave = max(max_octave, octave)
-    x, y = keypoint.pt
-
-    # Just averaging x and y positions
-    new_x = (centroid[0] * count + x) / (count + 1)
-    new_y = (centroid[1] * count + y) / (count + 1)
-    centroid = (new_x, new_y)
-    count += 1
 
 # BFMatcher with default params
 bf = cv2.BFMatcher()
@@ -56,7 +46,8 @@ for m, n in matches:
         good_matches.append([m])
         # Store the matching keypoints in a tuple in a list
         queryImage_kp.append(kp_query[m.queryIdx])
-        matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx]))
+        matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],
+                                   img_size_list[m.trainIdx], img_centroid_list[m.trainIdx]))
 
 # Every match has parameters
 # distance: the euclidean distance from the query descriptor to the training descriptor
@@ -69,22 +60,20 @@ for m, n in matches:
 
 
 # INITIAL VALUES
-# TODO will need to be changed for multiple models
-IMG_WIDTH = 1958
-IMG_HEIGHT = 1575
 angle_breakpoint = 30.0  # degrees
 scale_breakpoint = 2.0
 
 # Generate Pose guess of keypoints
 pose_bins = {}
 relaxed_bins = {}
-for kpM, kpQ in matching_keypoints:
+for kpM, kpQ, img_size, img_centroid in matching_keypoints:
+
     octaveM, layerM, scaleM = unpack_sift_octave(kpM)  # unpack octave information for model keypoint
     octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)  # unpack octave information for query keypoint
 
     # Changed from LOWE
-    x_pos_breakpoint = IMG_WIDTH * scaleQ / 32.0  # determine x axis bucket size in pixels
-    y_pos_breakpoint = IMG_HEIGHT * scaleQ / 32.0  # determine y axis bucket size in pixels
+    x_pos_breakpoint = img_size[0] * scaleQ / 32.0  # determine x axis bucket size in pixels
+    y_pos_breakpoint = img_size[1] * scaleQ / 32.0  # determine y axis bucket size in pixels
 
     pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
 
@@ -93,7 +82,7 @@ for kpM, kpQ in matching_keypoints:
     y_diff = kpQ.pt[1] - kpM.pt[1]
     orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
 
-    pose_estimate = (centroid[0] + x_diff, centroid[1] + y_diff, orientation_diff, scale_diff)
+    pose_estimate = (img_centroid[0] + x_diff, img_centroid[1] + y_diff, orientation_diff, scale_diff)
 
     # Get bucket locations
     possible_x_pos = [int(np.floor(pose_estimate[0] / x_pos_breakpoint) * x_pos_breakpoint),
@@ -147,6 +136,8 @@ fig, ax = plt.subplots()
 img = cv2.drawKeypoints(gray_query, queryImage_kp, None, None, flags=4)
 plt.imshow(img)
 # add box to image
+IMG_WIDTH = 1958
+IMG_HEIGHT = 1575
 x_shift = -IMG_WIDTH * max_pose[3] / 2
 y_shift = -IMG_HEIGHT * max_pose[3] / 2
 
@@ -183,7 +174,6 @@ rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2]))*x_shift - np.s
 rect = patches.Rectangle(rect_left_corner,
                          IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], max_pose[2],
                          linewidth=4, edgecolor='r', facecolor='none')
-#TODO Rotation of box if image is rotated
 ax.add_patch(rect)
 plt.show()
 print("done")
