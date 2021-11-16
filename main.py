@@ -46,7 +46,7 @@ def make_kp(temp_kp):
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Sift-Implementation/Test_images/Test_image7.jpeg')  # Query Image
+image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Sift-Implementation/Test_images/Test_image5.jpeg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
