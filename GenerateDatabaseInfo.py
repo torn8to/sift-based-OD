@@ -33,7 +33,7 @@ for file in listing:
     # centroid = (img_size[0]/2, img_size[1]/2)
 
     temp_kp = make_temp_kp(kp)
-    datum = [temp_kp, des, img_size, centroid, path1 + file]  # TODO Get centroid, Img width, and img height
+    datum = [temp_kp, des, img_size, centroid, path1 + file]
     data.append(datum)
 
 save_object(data, 'training_data.pkl')
