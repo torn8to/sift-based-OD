@@ -2,6 +2,7 @@ import cv2
 from matplotlib import pyplot as plt
 import os
 import pickle
+from SiftHelperFunctions import *
 
 
 def save_object(obj, filename):
@@ -9,21 +10,13 @@ def save_object(obj, filename):
         pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
 
 
-def make_temp_kp(kp):
-    temp_kp = []
-    for point in kp:
-        temp = (point.pt, point.size, point.angle, point.response, point.octave,
-                point.class_id)
-        temp_kp.append(temp)
-    return temp_kp
-
 
 data = []
 
 sift = cv2.SIFT_create()
-path1 = '../Data_Set/'
+path1 = '../Data_Set/TrainingData/'
 listing = os.listdir(path1)
-listing.remove('.git')
+# listing.remove('.git')
 for file in listing:
     img = cv2.imread(path1 + file)
 
@@ -34,8 +27,10 @@ for file in listing:
 
     # find the keypoints and descriptors with SIFT
     kp, des = sift.detectAndCompute(gray_img, None)
+    get_centroid
 
     temp_kp = make_temp_kp(kp)
-    data.append([temp_kp, des, path1 + file])
+    datum = [temp_kp, des, path1 + file]  # TODO Get centroid, Img width, and img height
+    data.append(datum)
 
 save_object(data, 'training_data.pkl')
