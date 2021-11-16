@@ -9,7 +9,7 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_20211111_155814.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/IMG_20211027_170237_Rotated.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -147,11 +147,41 @@ fig, ax = plt.subplots()
 img = cv2.drawKeypoints(gray_query, queryImage_kp, None, None, flags=4)
 plt.imshow(img)
 # add box to image
-rect_left_corner = (max(max_pose[0] - IMG_WIDTH * max_pose[3] / 2, 0),
-                    max(max_pose[1] - IMG_HEIGHT * max_pose[3] / 2, 0))
+x_shift = -IMG_WIDTH * max_pose[3] / 2
+y_shift = -IMG_HEIGHT * max_pose[3] / 2
+
+# Frame transformations to align box properly after rotation
+# Denavit-Hartenberg parameters for 1st transform
+theta1 = np.arctan2(max_pose[1], max_pose[0]) - np.pi
+a1 = -np.sqrt(max_pose[0]**2 + max_pose[1]**2)
+
+T01 = np.matrix([[np.cos(theta1), -np.sin(theta1), 0, a1*np.cos(theta1)],
+                 [np.sin(theta1),  np.cos(theta1), 0, a1*np.sin(theta1)],
+                 [0,               0,              1, 0],
+                 [0,               0,              0, 1]])
+
+# Denavit-Hartenberg Parameters for 2nd transform
+theta2 = np.arctan2(y_shift, x_shift)-theta1
+T12 = np.matrix([[np.cos(theta2), -np.sin(theta2), 0, 0],
+                 [np.sin(theta2),  np.cos(theta2), 0, 0],
+                 [0,               0,              1, 0],
+                 [0,               0,              0, 1]])
+
+# Location of left right corner with respect to center point of rectangle in that frame
+pb_prime = np.matrix([[np.cos(np.deg2rad(max_pose[2]))*np.sqrt(x_shift**2 + y_shift**2)],
+                      [np.sin(np.deg2rad(max_pose[2]))*np.sqrt(x_shift**2 + y_shift**2)], [0], [1]])
+
+# matrix multiplication
+T02 = np.matmul(T01, T12)
+left_corner_pose = np.matmul(T02, pb_prime)
+# End of Frame transformations
+
+# simpler version of whats above
+rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2]))*x_shift - np.sin(np.deg2rad(max_pose[2]))*y_shift,
+                    max_pose[1] + np.sin(np.deg2rad(max_pose[2]))*x_shift + np.cos(np.deg2rad(max_pose[2]))*y_shift)
 
 rect = patches.Rectangle(rect_left_corner,
-                         IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], 0,
+                         IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], max_pose[2],
                          linewidth=4, edgecolor='r', facecolor='none')
 #TODO Rotation of box if image is rotated
 ax.add_patch(rect)
