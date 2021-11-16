@@ -9,7 +9,7 @@ from SiftHelperFunctions import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_Standing_Rotated.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/IMG_rotated_prajwal.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -60,7 +60,7 @@ for m, n in matches:
 
 
 # INITIAL VALUES
-angle_breakpoint = 30.0  # degrees
+angle_breakpoint = 10.0  # degrees
 scale_breakpoint = 2.0
 
 # Generate Pose guess of keypoints
