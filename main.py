@@ -102,18 +102,20 @@ for kpM, kpQ, img_size, img_centroid in matching_keypoints:
                 for s in range(2):
                     try:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                   possible_scale[s])] += 1
+                                   possible_scale[s])][0] += 1
                     except:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                   possible_scale[s])] = 1
+                                   possible_scale[s])] = [1, img_size]
 
 max_pose = (0, 0, 0, 0)
+des_img_size = (0, 0)
 max_vote = 0
 for key in pose_bins:
-    if pose_bins.get(key) > max_vote:
-        print(pose_bins.get(key), key)
+    if pose_bins.get(key)[0] > max_vote:
+        print(pose_bins.get(key)[0], key)
         max_pose = key
-        max_vote = pose_bins.get(key)
+        des_img_size = pose_bins.get(key)[1]
+        max_vote = pose_bins.get(key)[0]
 print(max_pose)
 
 ## VISUALIZATION ###############################################################
@@ -121,8 +123,8 @@ fig, ax = plt.subplots()
 img = cv2.drawKeypoints(gray_query, queryImage_kp, None, None, flags=4)
 plt.imshow(img)
 # add box to image
-IMG_WIDTH = 1958
-IMG_HEIGHT = 1575
+IMG_WIDTH = des_img_size[0]
+IMG_HEIGHT = des_img_size[1]
 x_shift = -IMG_WIDTH * max_pose[3] / 2
 y_shift = -IMG_HEIGHT * max_pose[3] / 2
 
