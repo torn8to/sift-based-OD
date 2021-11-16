@@ -35,7 +35,7 @@ def make_kp(temp_kp):
     centroid = []
     shape = []
     for point in temp_kp:
-        temp = cv2.KeyPoint(x=point[0][0], y=point[0][1], size=point[1], angle=point[2], response=point[3], octave=point[4], class_id=point[5])
+        temp = cv2.KeyPoint(x=point[0][0], y=point[0][1], _size=point[1], _angle=point[2], _response=point[3], _octave=point[4], _class_id=point[5])
         kp.append(temp)
         centroid.append(point[6])
         shape.append(point[7])
@@ -46,7 +46,7 @@ def make_kp(temp_kp):
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Sift-Implementation/Test_image6.jpeg')  # Query Image
+image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Sift-Implementation/Test_images/Test_image7.jpeg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -162,8 +162,8 @@ for index, element in enumerate(matching_keypoints):
     ##To allow for the rotations by -pi or pi to be close together
     i_theta = int(i_theta_prime % bin_theta)
     ##determine the scale index
-    n_oct = 4 ##########Assuming number of octaves as 4
-    i_sigma = int((math.log(scale, 2) / (2 * (max_octave + 2- 1) + 0.5) * bin_sigma))
+    n_oct = 4                           ##########Assuming number of octaves used by the opencv sift_create() as 4
+    i_sigma = int((math.log(scale, 2) / (2 * (n_oct- 1) + 0.5) * bin_sigma))
     i_sigma = max(0, i_sigma)                           ## making sure the index does not go out of range
     i_sigma = min(i_sigma, bin_sigma - 1)               ## making sure the index does not go out of range
     for w in range(2):
@@ -176,20 +176,9 @@ for index, element in enumerate(matching_keypoints):
                     d = i_sigma + z
                     if (a < bin_x and b < bin_y and c < bin_theta and d < bin_sigma):
                             hough_transform[a][b][c][d].append(element)
-                            # hough_transform[a][b][c][d] +=1
-                        # print(i_x +w, i_y +x, i_theta + y, i_sigma + z)
 print("Matches before Hough Transform:")
 print(len(good_matches))
-# c= 0
-# for i in range(bin_x):
-#     for j in range(bin_y):
-#         for k in range(bin_theta):
-#             for l in range(bin_sigma):
-#                 if len(hough_transform[i][j][k][l]) >= 5:
-                    # print(i, j, k, l)
-                    # c+=1
-                    # print(len(hough_transform[i][j][k][l]))
-# print(c)
+
 count = 0
 best_matches_kp_query = []
 best_matches_kp_model = []
@@ -201,8 +190,6 @@ for i in range(bin_x):
                 if len(hough_transform[i][j][k][l]) >= 3:
                     count += 1
                     best_pose.append((i, j))
-                    # print(len(hough_transform[i][j][k][l]))
-                    # element = hough_transform[i][j][k][l]
                     for element in hough_transform[i][j][k][l]:
                         best_matches_kp_query.append(element[1])
                         best_matches_kp_model.append(element[0])
@@ -225,16 +212,18 @@ img = cv2.drawKeypoints(rgb_query, best_matches_kp_query, None, flags=4)
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=4)
 plt.imshow(img)
 # add box to image
-temp = 0.05
-for pose in best_pose:
-    x_c = pose[0]*img_width / bin_x
-    y_c = pose[1]*img_height / bin_y
+temp = 0.025
+for pose in best_matches_kp_query:
+    x_c = pose.pt[0]
+    y_c = pose.pt[1]
+    # x_c = pose[0]*img_width / bin_x
+    # y_c = pose[1]*img_height / bin_y
     rect_left_corner = (max(x_c - img_width * temp / 2, 0),
                     max(y_c - img_height * temp / 2, 0))
 
     rect = patches.Rectangle(rect_left_corner,
                          img_width * temp, img_height * temp, 0,
-                         linewidth=3, edgecolor='r', facecolor='none')
+                         linewidth=0.5, edgecolor='r', facecolor='none')
 #TODO Rotation of box if image is rotated
     ax.add_patch(rect)
 plt.show()

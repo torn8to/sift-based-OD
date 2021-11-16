@@ -35,7 +35,7 @@ def make_temp_kp(kp, shape):
 data = []
 
 sift = cv2.SIFT_create()
-path1 = '/home/prajwal/Desktop/cv_group_project/D1/'
+path1 = '/home/prajwal/Desktop/cv_group_project/Sift-Implementation/My_Data_Set/'
 listing = os.listdir(path1)
 # listing.remove('.git')
 for file in listing:
