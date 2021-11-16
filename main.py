@@ -132,7 +132,7 @@ des_img_size = (0, 0)
 max_vote = 0
 for key in pose_bins:
     if pose_bins.get(key)[0] > max_vote:
-        print("Number of votes: ", pose_bins.get(key)[0], "for pose ", key)
+        print(pose_bins.get(key)[0], " votes for pose ", key)
         max_pose = key
         des_img_size = pose_bins.get(key)[1]
         max_vote = pose_bins.get(key)[0]
