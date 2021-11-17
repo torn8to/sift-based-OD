@@ -6,7 +6,6 @@ from SiftHelperFunctions import *
 
 
 def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_breakpoint=2.0, pos_factor=32.0):
-
     # Generate Pose guess of keypoints
     pose_bins = {}
     for kpM, kpQ, img_size, img_centroid in matching_keypoints:

@@ -22,7 +22,7 @@ with open('training_data.pkl', 'rb') as inp:
 
     temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
     img_size_list = [data[0][2]] * len(data[0][0])
-    img_centroid_list = [data[0][3]]*len(data[0][0])
+    img_centroid_list = [data[0][3]] * len(data[0][0])
     temp_des = data[0][1]  # the descriptor vector, grab the first element in the data set
     for datum in data[1:]:  # for the remaining elements append them to the previous two lists
         temp_kp.extend(datum[0])  # have to use extend here, because we don't want cascading lists
@@ -73,7 +73,7 @@ for key in pose_bins:
 print("Most Voted Pose: ", max_pose)
 print("Box Size: ", des_img_size)
 
-## VISUALIZATION ###############################################################
+# VISUALIZATION ###############################################################
 fig, ax = plt.subplots()
 img = cv2.drawKeypoints(gray_query, [x[1] for x in keypoint_pairs], None, None, flags=4)
 plt.imshow(img)
@@ -83,9 +83,9 @@ IMG_HEIGHT = des_img_size[1]
 x_shift = -IMG_WIDTH * max_pose[3] / 2
 y_shift = -IMG_HEIGHT * max_pose[3] / 2
 
-# simpler version of whats above
-rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2]))*x_shift - np.sin(np.deg2rad(max_pose[2]))*y_shift,
-                    max_pose[1] + np.sin(np.deg2rad(max_pose[2]))*x_shift + np.cos(np.deg2rad(max_pose[2]))*y_shift)
+# Determining the top left corner of the triangle with rotation
+rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2])) * x_shift - np.sin(np.deg2rad(max_pose[2])) * y_shift,
+                    max_pose[1] + np.sin(np.deg2rad(max_pose[2])) * x_shift + np.cos(np.deg2rad(max_pose[2])) * y_shift)
 
 rect = patches.Rectangle(rect_left_corner,
                          IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], max_pose[2],
