@@ -39,13 +39,11 @@ matches = bf.knnMatch(des_query, des, k=2)  # query ,database,nearest neighbors
 
 # Apply ratio test
 good_matches = []
-queryImage_kp = []
 matching_keypoints = []  # Tuples of (kpM, kpQ)
 for m, n in matches:
     if m.distance < 0.75 * n.distance or m.distance < 1.0:
         good_matches.append([m])
         # Store the matching keypoints in a tuple in a list
-        queryImage_kp.append(kp_query[m.queryIdx])
         matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],
                                    img_size_list[m.trainIdx], img_centroid_list[m.trainIdx]))
 
@@ -118,30 +116,37 @@ for kpM, kpQ, img_size, img_centroid in matching_keypoints:
                         """
                         Then we actually update the vote
                         """
+                        # Update the vote
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                    possible_scale[s])][0] += 1
+                        # update the average object size
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                    possible_scale[s])][1] = (new_width, new_height)
+                        # update the keypoint list
+                        pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                   possible_scale[s])][2].append((kpM, kpQ))
 
                     except KeyError:
                         pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                   possible_scale[s])] = [1, img_size]
+                                   possible_scale[s])] = [1, img_size, [(kpM, kpQ)]]
 
 max_pose = (0, 0, 0, 0)
 des_img_size = (0, 0)
+keypoint_pairs = []
 max_vote = 0
 for key in pose_bins:
     if pose_bins.get(key)[0] > max_vote:
         print(pose_bins.get(key)[0], " votes for pose ", key)
         max_pose = key
-        des_img_size = pose_bins.get(key)[1]
         max_vote = pose_bins.get(key)[0]
+        des_img_size = pose_bins.get(key)[1]
+        keypoint_pairs = pose_bins.get(key)[2]
 print("Most Voted Pose: ", max_pose)
 print("Box Size: ", des_img_size)
 
 ## VISUALIZATION ###############################################################
 fig, ax = plt.subplots()
-img = cv2.drawKeypoints(gray_query, queryImage_kp, None, None, flags=4)
+img = cv2.drawKeypoints(gray_query, [x[1] for x in keypoint_pairs], None, None, flags=4)
 plt.imshow(img)
 # add box to image
 IMG_WIDTH = des_img_size[0]
