@@ -59,17 +59,18 @@ for m, n in matches:
 
 pose_bins = perform_hough_transform(matching_keypoints)
 
-max_pose = (0, 0, 0, 0)
 des_img_size = (0, 0)
 keypoint_pairs = []
-max_vote = 0
+valid_bins = []
+max_vote = 3
 for key in pose_bins:
+    if pose_bins.get(key)[0] > 3:
+        valid_bins.append(pose_bins.get(key)[2])
     if pose_bins.get(key)[0] > max_vote:
         print(pose_bins.get(key)[0], " votes for pose ", key)
         max_pose = key
         max_vote = pose_bins.get(key)[0]
         des_img_size = pose_bins.get(key)[1]
-        keypoint_pairs = pose_bins.get(key)[2]
 print("Most Voted Pose: ", max_pose)
 print("Box Size: ", des_img_size)
 
