@@ -71,6 +71,7 @@ for key in pose_bins:
         max_pose = key
         max_vote = pose_bins.get(key)[0]
         des_img_size = pose_bins.get(key)[1]
+        keypoint_pairs = pose_bins.get(key)[2]
 print("Most Voted Pose: ", max_pose)
 print("Box Size: ", des_img_size)
 
