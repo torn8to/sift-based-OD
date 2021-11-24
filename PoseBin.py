@@ -20,5 +20,7 @@ class PoseBin:
     def add_vote(self, new_votes=1):
         self.votes += new_votes
 
-
-
+    def get_pts(self):
+        # TODO get the x and y points for each keypoint pair
+        # the x should have its own vector and y its own vector
+        pass
