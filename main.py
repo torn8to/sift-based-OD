@@ -6,6 +6,7 @@ import pickle
 from cv2 import sort
 from SiftHelperFunctions import *
 from HoughTransform import *
+from PoseBin import *
 
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
@@ -58,14 +59,14 @@ for m, n in matches:
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 
 pose_bins = perform_hough_transform(matching_keypoints)
-
+# TODO use pose bins not dictionary
 des_img_size = (0, 0)
 keypoint_pairs = []
-valid_bins = {}
+valid_bins = []
 max_vote = 3
 for key in pose_bins:
     if pose_bins.get(key)[0] > 3:
-        valid_bins[key] = pose_bins.get(key)[2]
+        valid_bins.append(PoseBin)
     if pose_bins.get(key)[0] > max_vote:
         print(pose_bins.get(key)[0], " votes for pose ", key)
         max_pose = key

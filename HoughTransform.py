@@ -44,6 +44,7 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
                 for theta in range(2):
                     for s in range(2):
                         try:
+                            # TODO use pose bins not dictionary
                             """
                             We first update the width and height of our image using the average of all widths
                             and heights used
@@ -72,6 +73,7 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
                                        possible_scale[s])][2].append((kpM, kpQ))
 
                         except KeyError:
+                            # TODO use pose bins not dictionary
                             pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                        possible_scale[s])] = [1, img_size, [(kpM, kpQ)]]
     return pose_bins
