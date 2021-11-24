@@ -1,8 +1,8 @@
 class PoseBin:
 
     def __init__(self, pose, img_size=(100, 100), votes=1, keypoint_pairs=[]):
-        self.pose = pose
-        self.img_size = img_size
+        self.pose = pose  # (x, y, theta, scale)
+        self.img_size = img_size  # (width, height)
         self.votes = votes
         self.keypoint_pairs = keypoint_pairs
 
