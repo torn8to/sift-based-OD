@@ -1,3 +1,6 @@
+import numpy as np
+
+
 class PoseBin:
 
     def __init__(self, pose, img_size=(100, 100), votes=0, keypoint_pairs=[]):
@@ -21,11 +24,19 @@ class PoseBin:
         self.votes += new_votes
 
     def get_pts(self):
-        # TODO get the x and y points for each keypoint pair
         # the x should have its own vector and y its own vector
-        pass
+        training_x = np.matrix([])
+        training_y = np.matrix([])
+        model_x = np.matrix([])
+        model_y = np.matrix([])
+        for kp_pair in self.keypoint_pairs:
+            training_x = np.append(training_x, kp_pair[0].pt[0])
+            training_y = np.append(training_y, kp_pair[0].pt[1])
+            model_x = np.append(model_x, kp_pair[1].pt[0])
+            model_y = np.append(model_y, kp_pair[1].pt[1])
+        return training_x, training_y, model_x, model_y
+
 
     def remove_keypoint_pair(self, pair):
-        # TODO remove the keypoint pair and subtract one from the vote
-        pass
+        self.keypoint_pairs.remove(pair)
 
