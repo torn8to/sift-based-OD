@@ -27,7 +27,6 @@ def group_position(best_pose):
                     pose_cluster_dict[a].append(b)
     seen = set()
     for i in range(len(best_pose)):
-        print(best_pose[i])
         if i not in seen:
             pose_cluster.append([])
             pose_cluster[len(pose_cluster) - 1] = dfs(i, seen, pose_cluster_dict, pose_cluster[len(pose_cluster) - 1], best_pose)
@@ -51,7 +50,6 @@ def group_orientation(pose_cluster):
         seen = set()
         orientation_cluster.append([])
         for k in range(len(pose_cluster[i])):
-            # print(best_pose[i])
             if k not in seen:
                 orientation_cluster[i].append([])
                 last = len(orientation_cluster[i]) - 1
@@ -64,14 +62,12 @@ def find_max_orientation(orientation_cluster):
         max_vote = 0
         final_orientation = 0
         for j in range(len(orientation_cluster[i])):
-            # print(len(orientation_cluster[i]))
             if len(orientation_cluster[i][j]) >= max_vote:
                 max_vote = len(orientation_cluster[i][j])
                 final_orientation = 0  
                 for k in range(len(orientation_cluster[i][j])):
                     final_orientation += orientation_cluster[i][j][k][1]
                 final_orientation = final_orientation / len(orientation_cluster[i][j])
-                # print(final_orientation)
         final_orientation_list.append(final_orientation)
     return final_orientation_list
 
@@ -87,8 +83,6 @@ def get_final_pose(pose_cluster, final_orientation_list):
         min_area = math.inf
         min_shape = 0, 0
         for j in range(len(pose_cluster[i])):
-            # if i == 0:
-                # print(pose_cluster[i][j][1], pose_cluster[i][j][3])
             mean_centroid_x += pose_cluster[i][j][0][0]
             mean_centroid_y += pose_cluster[i][j][0][1]
             mean_scale += pose_cluster[i][j][2]

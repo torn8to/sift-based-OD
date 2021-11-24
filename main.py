@@ -20,14 +20,15 @@ from PostProcessing import *
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Sift-Implementation/Test_images/Test_image9.jpg')  # Query Image
+image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Data_Set/Test_DataSet/occlusion/occlusion_14.JPG')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
 img_size_list = []
 img_centroid_list = []
-with open('training_data.pkl', 'rb') as inp:
+path = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/DatabaseInfo/standing/training_data.pkl'
+with open(path, 'rb') as inp:
     data = pickle.load(inp)
 
     temp_kp = data[0][0]
@@ -50,18 +51,10 @@ matches = bf.knnMatch(des_query, des, k=2)  # query ,database,nearest neighbors
 
 # Apply ratio test
 good_matches = []
-# model_kp = []
-# shape_model_kp = []  ##stores the information of shape image from which the keypoint was generated
-# queryImage_kp = []
-# centroid_model = []  ##stores the centroid information corresponding to image keypoint
 matching_keypoints = []
 for m, n in matches:
     if m.distance < 0.75 * n.distance:
         good_matches.append([m])
-        # model_kp.append(kp[m.trainIdx])
-        # shape_model_kp.append(shape[m.trainIdx])
-        # centroid_model.append(centroid[m.trainIdx])
-        # queryImage_kp.append(kp_query[m.queryIdx])
         matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],  img_size_list[m.trainIdx], img_centroid_list[m.trainIdx]))
 
 # Every match has parameters
@@ -98,7 +91,7 @@ img = cv2.drawKeypoints(rgb_query, [x[1] for x in keypoint_pairs], None, flags=4
 plt.imshow(img)
 
 for pose in final_pose:
-    print("Object pose are:")
+    print("Object pose is:")
     print(pose)
     x_prime = - pose[3][1] *(pose[2]) / 2
     y_prime = - pose[3][0] * (pose[2]) / 2

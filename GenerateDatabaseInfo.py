@@ -14,7 +14,7 @@ def save_object(obj, filename):
 data = []
 
 sift = cv2.SIFT_create()
-path1 = '/home/prajwal/Desktop/cv_group_project/Sift-Implementation/My_Data_Set/'
+path1 = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/standing/'
 listing = os.listdir(path1)
 # listing.remove('.git')
 for file in listing:
