@@ -4,6 +4,7 @@ import pickle
 from cv2 import sort
 from SiftHelperFunctions import *
 from PoseBin import *
+import sys
 
 
 def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_breakpoint=2.0, pos_factor=32.0):
@@ -39,11 +40,14 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
 
         possible_scale = [scale_breakpoint ** np.floor(np.log(pose_estimate[3]) / np.log(scale_breakpoint)),
                           scale_breakpoint ** np.ceil(np.log(pose_estimate[3]) / np.log(scale_breakpoint))]
+        if possible_scale[0] == possible_scale[1]:
+            # Sometimes the scale adds the same value twice leading to duplicates in the pose bins
+            possible_scale.remove(possible_scale[1])
 
         for i in range(2):
             for j in range(2):
                 for theta in range(2):
-                    for s in range(2):
+                    for s in range(len(possible_scale)):
                         pose = (possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
                                 possible_scale[s])
                         try:
