@@ -42,7 +42,7 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
                           scale_breakpoint ** np.ceil(np.log(pose_estimate[3]) / np.log(scale_breakpoint))]
         if possible_scale[0] == possible_scale[1]:
             # Sometimes the scale adds the same value twice leading to duplicates in the pose bins
-            possible_scale.remove(possible_scale[1])
+            possible_scale[1] = possible_scale[1]**scale_breakpoint
 
         for i in range(2):
             for j in range(2):
