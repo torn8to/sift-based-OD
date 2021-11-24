@@ -59,7 +59,6 @@ for m, n in matches:
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 
 pose_bins = perform_hough_transform(matching_keypoints)
-# TODO use pose bins not dictionary
 des_img_size = (0, 0)
 keypoint_pairs = []
 valid_bins = []  # A list of PoseBin objects
