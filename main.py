@@ -18,7 +18,7 @@ kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
 img_size_list = []
 img_centroid_list = []
-with open('training_data.pkl', 'rb') as inp:
+with open('../Data_Set/training_data.pkl', 'rb') as inp:
     data = pickle.load(inp)  # Open training data and load it
 
     temp_kp = data[0][0]  # temporary kp, grab the first element in the data set

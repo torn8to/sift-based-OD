@@ -36,4 +36,4 @@ for file in listing:
     datum = [temp_kp, des, img_size, centroid, path1 + file]
     data.append(datum)
 
-save_object(data, 'training_data.pkl')
+save_object(data, '../Data_Set/training_data.pkl')
