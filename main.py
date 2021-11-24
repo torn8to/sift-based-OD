@@ -96,9 +96,3 @@ rect = patches.Rectangle(rect_left_corner,
 ax.add_patch(rect)
 plt.show()
 print("done")
-
-
-## TESTING POSE BIN X AND Y GENERATOR
-test_bin = valid_bins[0]
-x1,y1,x2,y2 = test_bin.get_pts()
-print("done")

@@ -25,15 +25,15 @@ class PoseBin:
 
     def get_pts(self):
         # the x should have its own vector and y its own vector
-        training_x = np.matrix([])
-        training_y = np.matrix([])
-        model_x = np.matrix([])
-        model_y = np.matrix([])
+        training_x = np.array([])
+        training_y = np.array([])
+        model_x = np.array([])
+        model_y = np.array([])
         for kp_pair in self.keypoint_pairs:
-            training_x = np.extend(training_x, kp_pair[0].pt[0])
-            training_y = np.extend(training_y, kp_pair[0].pt[1])
-            model_x = np.extend(model_x, kp_pair[1].pt[0])
-            model_y = np.extend(model_y, kp_pair[1].pt[1])
+            training_x = np.append(training_x, kp_pair[1].pt[0])
+            training_y = np.append(training_y, kp_pair[1].pt[1])
+            model_x = np.append(model_x, kp_pair[0].pt[0])
+            model_y = np.append(model_y, kp_pair[0].pt[1])
         return training_x, training_y, model_x, model_y
 
     def remove_keypoint_pair(self, pair):
