@@ -3,6 +3,7 @@ from matplotlib import patches as patches
 import pickle
 from cv2 import sort
 from SiftHelperFunctions import *
+from PoseBin import *
 
 
 def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_breakpoint=2.0, pos_factor=32.0):
@@ -43,37 +44,20 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
             for j in range(2):
                 for theta in range(2):
                     for s in range(2):
+                        pose = (possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
+                                possible_scale[s])
                         try:
-                            # TODO use pose bins not dictionary
                             """
-                            We first update the width and height of our image using the average of all widths
-                            and heights used
-                            """
-                            count = pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                               possible_scale[s])][0]
-                            old_width = pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                                   possible_scale[s])][1][0]
-                            old_height = pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                                    possible_scale[s])][1][1]
-
-                            new_width = (old_width * count + img_size[0]) / (count + 1)
-                            new_height = (old_height * count + img_size[1]) / (count + 1)
-
-                            """
-                            Then we actually update the vote
+                            we update the vote
                             """
                             # Update the vote
-                            pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                       possible_scale[s])][0] += 1
+                            pose_bins[pose].add_vote()
                             # update the average object size
-                            pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                       possible_scale[s])][1] = (new_width, new_height)
+                            pose_bins[pose].update_img_size(img_size)
                             # update the keypoint list
-                            pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                       possible_scale[s])][2].append((kpM, kpQ))
+                            pose_bins[pose].add_keypoint_pair((kpM, kpQ))
 
                         except KeyError:
-                            # TODO use pose bins not dictionary
-                            pose_bins[(possible_x_pos[i], possible_y_pos[j], possible_orientation[theta],
-                                       possible_scale[s])] = [1, img_size, [(kpM, kpQ)]]
+                            pose_bins[pose] = PoseBin(pose, img_size, 1, [(kpM, kpQ)])
+
     return pose_bins

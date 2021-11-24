@@ -30,13 +30,26 @@ class PoseBin:
         model_x = np.matrix([])
         model_y = np.matrix([])
         for kp_pair in self.keypoint_pairs:
-            training_x = np.append(training_x, kp_pair[0].pt[0])
-            training_y = np.append(training_y, kp_pair[0].pt[1])
-            model_x = np.append(model_x, kp_pair[1].pt[0])
-            model_y = np.append(model_y, kp_pair[1].pt[1])
+            training_x = np.extend(training_x, kp_pair[0].pt[0])
+            training_y = np.extend(training_y, kp_pair[0].pt[1])
+            model_x = np.extend(model_x, kp_pair[1].pt[0])
+            model_y = np.extend(model_y, kp_pair[1].pt[1])
         return training_x, training_y, model_x, model_y
-
 
     def remove_keypoint_pair(self, pair):
         self.keypoint_pairs.remove(pair)
 
+    def is_same_pose(self, pose):
+        return pose == self.pose
+
+    def __eq__(self, other):
+        if isinstance(other, PoseBin):
+            return other.pose == self.pose
+        else:
+            return False
+
+    def __repr__(self):
+        return "[" + str(self.pose) + ", " + str(self.votes) + ", " + str(self.img_size) + "]"
+
+    def __str__(self):
+        return "Pose: " + str(self.pose)

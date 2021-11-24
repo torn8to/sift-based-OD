@@ -62,17 +62,17 @@ pose_bins = perform_hough_transform(matching_keypoints)
 # TODO use pose bins not dictionary
 des_img_size = (0, 0)
 keypoint_pairs = []
-valid_bins = []
+valid_bins = []  # A list of PoseBin objects
 max_vote = 3
 for key in pose_bins:
-    if pose_bins.get(key)[0] > 3:
-        valid_bins.append(PoseBin)
-    if pose_bins.get(key)[0] > max_vote:
-        print(pose_bins.get(key)[0], " votes for pose ", key)
+    if pose_bins.get(key).votes > 3:
+        valid_bins.append(pose_bins.get(key))
+    if pose_bins.get(key).votes > max_vote:
+        print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
         max_pose = key
-        max_vote = pose_bins.get(key)[0]
-        des_img_size = pose_bins.get(key)[1]
-        keypoint_pairs = pose_bins.get(key)[2]
+        max_vote = pose_bins.get(key).votes
+        des_img_size = pose_bins.get(key).img_size
+        keypoint_pairs = pose_bins.get(key).keypoint_pairs
 print("Most Voted Pose: ", max_pose)
 print("Box Size: ", des_img_size)
 
@@ -95,4 +95,10 @@ rect = patches.Rectangle(rect_left_corner,
                          linewidth=4, edgecolor='r', facecolor='none')
 ax.add_patch(rect)
 plt.show()
+print("done")
+
+
+## TESTING POSE BIN X AND Y GENERATOR
+test_bin = valid_bins[0]
+x1,y1,x2,y2 = test_bin.get_pts()
 print("done")
