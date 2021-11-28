@@ -58,6 +58,7 @@ for m, n in matches:
 # cv2.drawMatchesKnn expects list of lists as matches.
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 
+count = 0
 pose_bins = perform_hough_transform(matching_keypoints)
 des_img_size = (0, 0)
 keypoint_pairs = []
@@ -66,6 +67,7 @@ max_vote = 3
 for key in pose_bins:
     if pose_bins.get(key).votes > 3:
         valid_bins.append(pose_bins.get(key))
+        count += 1
     if pose_bins.get(key).votes > max_vote:
         print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
         max_pose = key
