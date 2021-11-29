@@ -64,9 +64,9 @@ keypoint_pairs = []
 valid_bins = []  # A list of PoseBin objects
 max_vote = 3
 for key in pose_bins:
-    if pose_bins.get(key).votes > 3:
+    if pose_bins.get(key).votes >= 3:
         valid_bins.append(pose_bins.get(key))
-    if pose_bins.get(key).votes > max_vote:
+    if pose_bins.get(key).votes >= max_vote:
         print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
         max_pose = key
         max_vote = pose_bins.get(key).votes
