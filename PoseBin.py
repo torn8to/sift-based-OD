@@ -3,7 +3,7 @@ import numpy as np
 
 class PoseBin:
 
-    def __init__(self, pose, img_size=(100, 100), votes=0, keypoint_pairs=[]):
+    def __init__(self, pose = (0, 0, 0, 0), img_size=(100, 100), votes=0, keypoint_pairs=[]):
         self.pose = pose  # (x, y, theta, scale)
         self.img_size = img_size  # (width, height)
         self.votes = votes

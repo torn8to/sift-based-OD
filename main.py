@@ -5,6 +5,7 @@ from matplotlib import patches as patches
 import pickle
 from cv2 import sort
 from SiftHelperFunctions import *
+from VisualHelperFunctions import *
 from HoughTransform import *
 from PoseBin import *
 
@@ -66,7 +67,7 @@ max_vote = 3
 for key in pose_bins:
     if pose_bins.get(key).votes >= 3:
         valid_bins.append(pose_bins.get(key))
-    if pose_bins.get(key).votes >= max_vote:
+    if pose_bins.get(key).votes > max_vote:
         print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
         max_pose = key
         max_vote = pose_bins.get(key).votes
@@ -75,23 +76,6 @@ for key in pose_bins:
 print("Most Voted Pose: ", max_pose)
 print("Box Size: ", des_img_size)
 
-# VISUALIZATION ###############################################################
-fig, ax = plt.subplots()
-img = cv2.drawKeypoints(gray_query, [x[1] for x in keypoint_pairs], None, None, flags=4)
-plt.imshow(img)
-# add box to image
-IMG_WIDTH = des_img_size[0]
-IMG_HEIGHT = des_img_size[1]
-x_shift = -IMG_WIDTH * max_pose[3] / 2
-y_shift = -IMG_HEIGHT * max_pose[3] / 2
-
-# Determining the top left corner of the triangle with rotation
-rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2])) * x_shift - np.sin(np.deg2rad(max_pose[2])) * y_shift,
-                    max_pose[1] + np.sin(np.deg2rad(max_pose[2])) * x_shift + np.cos(np.deg2rad(max_pose[2])) * y_shift)
-
-rect = patches.Rectangle(rect_left_corner,
-                         IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], max_pose[2],
-                         linewidth=4, edgecolor='r', facecolor='none')
-ax.add_patch(rect)
+fig, ax = plot_rect(gray_query, PoseBin(max_pose, des_img_size, max_vote, keypoint_pairs))
 plt.show()
 print("done")
