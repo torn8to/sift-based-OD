@@ -3,11 +3,16 @@ import numpy as np
 
 class PoseBin:
 
-    def __init__(self, pose = (0, 0, 0, 0), img_size=(100, 100), votes=0, keypoint_pairs=[]):
+    def __init__(self, pose=(0, 0, 0, 0), img_size=(100, 100), votes=0, keypoint_pairs=[]):
         self.pose = pose  # (x, y, theta, scale)
         self.img_size = img_size  # (width, height)
         self.votes = votes
         self.keypoint_pairs = keypoint_pairs
+
+    def update_posebin(self, img_size, pair):
+        self.update_img_size(img_size)
+        self.add_keypoint_pair(pair)
+        self.add_vote()
 
     def add_keypoint_pair(self, pair):
         self.keypoint_pairs.append(pair)

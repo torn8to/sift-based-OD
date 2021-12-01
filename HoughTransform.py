@@ -56,12 +56,7 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
                             """
                             we update the vote
                             """
-                            # Update the vote
-                            pose_bins[pose].add_vote()
-                            # update the average object size
-                            pose_bins[pose].update_img_size(img_size)
-                            # update the keypoint list
-                            pose_bins[pose].add_keypoint_pair((kpM, kpQ))
+                            pose_bins[pose].update_posebin(img_size, (kpM, kpQ))
 
                         except KeyError:
                             pose_bins[pose] = PoseBin(pose, img_size, 1, [(kpM, kpQ)])
