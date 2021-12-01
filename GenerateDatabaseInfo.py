@@ -14,12 +14,12 @@ def save_object(obj, filename):
 data = []
 
 sift = cv2.SIFT_create()
-path1 = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/standing/'
+path1 = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/car/'
 listing = os.listdir(path1)
 # listing.remove('.git')
 for file in listing:
     img = cv2.imread(path1 + file)
-    img_size = img.shape
+    img_size = (img.shape[1], img.shape[0])
     # image comparison
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

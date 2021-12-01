@@ -14,20 +14,21 @@ import math
 from SiftHelperFunctions import *
 from HoughTransform import *
 from PostProcessing import *
+from VisualHelperFunctions import *
 
 
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Data_Set/Test_DataSet/occlusion/occlusion_14.JPG')  # Query Image
+image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Data_Set/Test_DataSet/other/Test_image_16.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
 img_size_list = []
 img_centroid_list = []
-path = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/DatabaseInfo/standing/training_data.pkl'
+path = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/DatabaseInfo/car/training_data.pkl'
 with open(path, 'rb') as inp:
     data = pickle.load(inp)
 
@@ -63,47 +64,28 @@ for m, n in matches:
 # queryIdx: query descriptor index
 # trainIdx: train descriptor index
 
+# Perform Hough Transform
 hough_dict = perform_hough_transform(matching_keypoints, image_query)
 
-best_pose = []
+valid_bins = []
 keypoint_pairs = []
 keys = hough_dict.keys()
 
+# Keep all centroids with votes greater than 5 and discard the rest
+
 for i, key in enumerate(keys):
-    if hough_dict[key][0] >= 5:
-        keypoint_pairs.append(hough_dict[key][2])
-        element = hough_dict[key][3][0], hough_dict[key][3][1], hough_dict[key][3][2], hough_dict[key][1]
-        if element not in best_pose:
-            best_pose.append(element)
-        
-## Group all nearby best poses based on position only
-pose_cluster = group_position(best_pose)
-##Group each pose_cluster based on orientation
-orientation_cluster = group_orientation(pose_cluster)
-## For each pose cluster, check the maximum orientation cluster and append in to a list
-final_orientation_list = find_max_orientation(orientation_cluster)
-## Final pose is the average of pose_cluster position, maximum of orienation cluster for each position,
-#  average scale for each pose_cluster and minimum image area for each pose_cluster
-final_pose = get_final_pose(pose_cluster, final_orientation_list)
+    # print(hough_dict[key].votes)
+    if hough_dict[key].votes >= 5:
+        keypoint_pairs.extend(hough_dict[key].keypoint_pairs)
+        if hough_dict[key] not in valid_bins:
+            valid_bins.append(hough_dict[key])
 
-fig, ax = plt.subplots()
-img = cv2.drawKeypoints(rgb_query, [x[1] for x in keypoint_pairs], None, flags=4)
-plt.imshow(img)
+##Call the Affine Transformation function here.
+##Valid bins is a list of PoseBin object with each object having votes greater than 5
 
-for pose in final_pose:
-    print("Object pose is:")
-    print(pose)
-    x_prime = - pose[3][1] *(pose[2]) / 2
-    y_prime = - pose[3][0] * (pose[2]) / 2
-    theta = pose[1]
-    x_dash = math.cos(theta) * x_prime - math.sin(theta) * y_prime
-    y_dash = math.sin(theta) * x_prime + math.cos(theta) * y_prime
-    x = pose[0][0] + x_dash
-    y = pose[0][1] + y_dash
-    rect_left_corner = x, y
-    rect = patches.Rectangle(rect_left_corner,
-                        pose[3][1] * pose[2], pose[3][0] * pose[2], math.degrees(pose[1]),
-                        linewidth=2, edgecolor='r', facecolor='none')
-    ax.add_patch(rect)
+# Calculates average pose for each cluster based on position and orientation
+final_pose = post_process(valid_bins)
+
+fig, ax = plot_rect(rgb_query, final_pose, keypoint_pairs)
 plt.show()
 print("done")

@@ -1,8 +1,9 @@
 import math
 from SiftHelperFunctions import *
+from PoseBin import *
 # from main import *
 
-def perform_hough_transform(matching_keypoints, image_query, bin_x=20, bin_y=20, bin_theta=20, bin_sigma=20):
+def perform_hough_transform(matching_keypoints, image_query, bin_x=15, bin_y=15, bin_theta=15, bin_sigma=15):
     hough_dict = {}
 
     img_height = image_query.shape[0]
@@ -21,6 +22,7 @@ def perform_hough_transform(matching_keypoints, image_query, bin_x=20, bin_y=20,
         m_y = kpM.pt[1]
         m_octave, m_layer, m_scale = unpack_sift_octave(kpM)
         m_theta = kpM.angle
+        # print(q_theta, m_theta)
         #translation and scaling
         scale = m_scale / q_scale                           ## scale the model keypoints to query keypoint
         translated_x = (m_centroid[0] - m_x) * scale
@@ -39,7 +41,9 @@ def perform_hough_transform(matching_keypoints, image_query, bin_x=20, bin_y=20,
         i_y = max(0, i_y- 1)                                 ## making sure the index does not go out of range
         i_y = min(i_y, bin_y - 1)                           ## making sure the index does not go out of range
         ##normalize theta from [-pi, pi] to [0, 2*pi] and calculate index
-        i_theta_prime = (alpha + math.pi) * bin_theta / (math.pi * 2)  ##need to correct alpha from degree to radian
+        # i_theta_prime = (alpha + math.pi) * bin_theta / (math.pi * 2)
+        alpha = (alpha + 2*math.pi) % (2*math.pi)
+        i_theta_prime = alpha * bin_theta / (2*math.pi)
         ##To allow for the rotations by -pi or pi to be close together
         i_theta = int(i_theta_prime % bin_theta)
         ##determine the scale index
@@ -55,30 +59,39 @@ def perform_hough_transform(matching_keypoints, image_query, bin_x=20, bin_y=20,
                         b = i_y + x
                         c = i_theta + y
                         d = i_sigma + z
+                        pose = (a, b, c, d)
                         if (a < bin_x and b < bin_y and c < bin_theta and d < bin_sigma):
                             try:
-                                count = hough_dict[a, b, c, d][0]
-                                old_height = hough_dict[a, b, c, d][1][0]
-                                old_width = hough_dict[a, b, c, d][1][1]
-                                new_height = (old_height * count + m_size[0]) / (count + 1)
-                                new_width = (old_width * count + m_size[1]) / (count + 1)
-                                avg_shape = new_height, new_width
-                                old_x = hough_dict[a, b, c, d][3][0][0]
-                                old_y = hough_dict[a, b, c, d][3][0][1]
-                                new_x = (old_x * count + q_x) / (count + 1)
-                                new_y = (old_y * count + q_y) / (count + 1)
-                                new_centroid = new_x, new_y
-                                old_alpha = hough_dict[a, b, c, d][3][1]
-                                new_alpha = (old_alpha * count + alpha) / (count + 1)
-                                old_scale = hough_dict[a, b, c, d][3][2]
-                                new_scale = (old_scale * count + scale) / (count + 1)
-                                new_mean = new_centroid, new_alpha, new_scale
+                                # count = hough_dict[a, b, c, d][0]
+                                # old_height = hough_dict[a, b, c, d][1][0]
+                                # old_width = hough_dict[a, b, c, d][1][1]
+                                # new_height = (old_height * count + m_size[0]) / (count + 1)
+                                # new_width = (old_width * count + m_size[1]) / (count + 1)
+                                # avg_shape = new_height, new_width
+                                # old_x = hough_dict[a, b, c, d][3][0][0]
+                                # old_y = hough_dict[a, b, c, d][3][0][1]
+                                # new_x = (old_x * count + q_x) / (count + 1)
+                                # new_y = (old_y * count + q_y) / (count + 1)
+                                # new_centroid = new_x, new_y
+                                # old_alpha = hough_dict[a, b, c, d][3][1]
+                                # new_alpha = (old_alpha * count + alpha) / (count + 1)
+                                # old_scale = hough_dict[a, b, c, d][3][2]
+                                # new_scale = (old_scale * count + scale) / (count + 1)
+                                # new_mean = new_centroid, new_alpha, new_scale
 
-                                hough_dict[a, b, c, d][0] +=1
-                                hough_dict[a, b, c, d][1] = avg_shape
-                                hough_dict[a, b, c, d][2].append((kpM, kpQ))
-                                hough_dict[a, b, c, d][3] = new_mean
+                                # hough_dict[a, b, c, d][0] +=1
+                                # hough_dict[a, b, c, d][1] = avg_shape
+                                # hough_dict[a, b, c, d][2].append((kpM, kpQ))
+                                # hough_dict[a, b, c, d][3] = new_mean
+                                hough_dict[pose].update_posebin(q_centroid, alpha, scale, m_size, (kpM, kpQ))
+                                # hough_dict[pose].update_centroid(q_centroid)
+                                # hough_dict[pose].update_img_size(m_size)
+                                # hough_dict[pose].update_angle(alpha)
+                                # hough_dict[pose].update_scale(scale)
+                                # hough_dict[pose].add_keypoint_pair((kpM, kpQ))
+                                # hough_dict[pose].add_vote()
                             except KeyError:
-                                mean = (q_x, q_y), alpha, scale
-                                hough_dict[a, b, c, d] = [1, m_size, [kpM, kpQ], mean]
+                                mean = q_centroid, alpha, scale
+                                # hough_dict[a, b, c, d] = [1, m_size, [kpM, kpQ], mean]
+                                hough_dict[pose] = PoseBin(pose, m_size, 1, [(kpM, kpQ)], mean)
     return hough_dict
