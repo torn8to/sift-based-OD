@@ -21,7 +21,8 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
 
         pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
 
-        scale_diff = scaleM / scaleQ
+        # scale_diff = scaleM / scaleQ
+        scale_diff = kpQ.size/kpM.size  # testing using size instead of scale
         x_diff = kpQ.pt[0] - kpM.pt[0]
         y_diff = kpQ.pt[1] - kpM.pt[1]
         orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
@@ -42,7 +43,8 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
                           scale_breakpoint ** np.ceil(np.log(pose_estimate[3]) / np.log(scale_breakpoint))]
         if possible_scale[0] == possible_scale[1]:
             # Sometimes the scale adds the same value twice leading to duplicates in the pose bins
-            possible_scale[1] = possible_scale[1]**scale_breakpoint
+            # possible_scale[1] = possible_scale[1]**scale_breakpoint
+            possible_scale = [possible_scale[0]]
 
         for i in range(2):
             for j in range(2):

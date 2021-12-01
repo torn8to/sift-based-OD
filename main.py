@@ -63,12 +63,16 @@ pose_bins = perform_hough_transform(matching_keypoints)
 valid_bins = []  # A list of PoseBin objects
 max_vote = 3
 best_pose_bin = PoseBin()
+dup_bins = []
 for key in pose_bins:
     if pose_bins.get(key).votes >= 3:
         valid_bins.append(pose_bins.get(key))
     if pose_bins.get(key).votes > best_pose_bin.votes:
         print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
         best_pose_bin = pose_bins.get(key)
+        dup_bins = [pose_bins.get(key)]
+    elif pose_bins.get(key).votes == best_pose_bin.votes:
+        dup_bins.append(pose_bins.get(key))
 print("Most Voted Pose: ", best_pose_bin.pose)
 print("Box Size: ", best_pose_bin.img_size)
 
