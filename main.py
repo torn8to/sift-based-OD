@@ -60,22 +60,18 @@ for m, n in matches:
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 
 pose_bins = perform_hough_transform(matching_keypoints)
-des_img_size = (0, 0)
-keypoint_pairs = []
 valid_bins = []  # A list of PoseBin objects
 max_vote = 3
+best_pose_bin = PoseBin()
 for key in pose_bins:
     if pose_bins.get(key).votes >= 3:
         valid_bins.append(pose_bins.get(key))
-    if pose_bins.get(key).votes > max_vote:
+    if pose_bins.get(key).votes > best_pose_bin.votes:
         print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
-        max_pose = key
-        max_vote = pose_bins.get(key).votes
-        des_img_size = pose_bins.get(key).img_size
-        keypoint_pairs = pose_bins.get(key).keypoint_pairs
-print("Most Voted Pose: ", max_pose)
-print("Box Size: ", des_img_size)
+        best_pose_bin = pose_bins.get(key)
+print("Most Voted Pose: ", best_pose_bin.pose)
+print("Box Size: ", best_pose_bin.img_size)
 
-fig, ax = plot_rect(gray_query, PoseBin(max_pose, des_img_size, max_vote, keypoint_pairs))
+fig, ax = plot_rect(gray_query, best_pose_bin)
 plt.show()
 print("done")
