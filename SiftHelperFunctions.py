@@ -61,3 +61,14 @@ def get_centroid(kp):
         centroid = (new_x, new_y)
         count += 1
     return centroid
+
+def test_size(matching_keypoints):
+    for kp_pairs in matching_keypoints:
+        m_kp = kp_pairs[0]
+        t_kp = kp_pairs[1]
+        octave, layer, m_scale = unpack_sift_octave(m_kp)
+        octave, layer, t_scale = unpack_sift_octave(t_kp)
+        val1 = 2 ** np.floor(np.log(m_kp.size/t_kp.size) / np.log(2))
+        val2 = 2 ** np.ceil(np.log(m_kp.size/t_kp.size) / np.log(2))
+        if val1 != t_scale/m_scale and val2 != t_scale/m_scale:
+            print("Size factor: ", m_kp.size/t_kp.size, ", Scale factor: ", t_scale/m_scale)
