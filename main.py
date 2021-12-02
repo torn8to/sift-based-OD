@@ -12,7 +12,7 @@ from PoseBin import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/Test dataset/clutter/IMG_3485.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/Test dataset/clutter/IMG_3481.JPG')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -85,7 +85,7 @@ plt.imshow(img)
 
 fig, ax = plt.subplots()
 color_count = 0
-colors = ['r', 'b', 'g', 'y']
+colors = ['r', 'b', 'g', 'y','p']
 for bin in dup_bins:
     print("Most Voted Pose: ", bin.pose, " with ", bin.votes, " votes")
     print("Box Size: ", bin.img_size, " in ", colors[color_count], "\n")
