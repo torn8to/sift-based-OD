@@ -62,6 +62,7 @@ def get_centroid(kp):
         count += 1
     return centroid
 
+
 def test_size(matching_keypoints):
     for kp_pairs in matching_keypoints:
         m_kp = kp_pairs[0]

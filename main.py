@@ -12,7 +12,7 @@ from PoseBin import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_rotated_prajwal.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/Test dataset/clutter/IMG_3485.JPG')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -40,6 +40,12 @@ des = temp_des
 bf = cv2.BFMatcher()
 matches = bf.knnMatch(des_query, des, k=2)  # query ,database,nearest neighbors
 
+# Every match has parameters
+# distance: the euclidean distance from the query descriptor to the training descriptor
+# imgIdx: Train image index
+# queryIdx: query descriptor index
+# trainIdx: train descriptor index
+
 # Apply ratio test
 good_matches = []
 matching_keypoints = []  # Tuples of (kpM, kpQ)
@@ -50,16 +56,13 @@ for m, n in matches:
         matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],
                                    img_size_list[m.trainIdx], img_centroid_list[m.trainIdx]))
 
-# Every match has parameters
-# distance: the euclidean distance from the query descriptor to the training descriptor
-# imgIdx: Train image index
-# queryIdx: query descriptor index
-# trainIdx: train descriptor index
+# Make sure size and scale give similar results
+test_size(matching_keypoints)
 
-# cv2.drawMatchesKnn expects list of lists as matches.
-# img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
-
+# Apply hough transform
 pose_bins = perform_hough_transform(matching_keypoints)
+
+# Get most voted
 valid_bins = []  # A list of PoseBin objects
 max_vote = 3
 best_pose_bin = PoseBin()
@@ -73,9 +76,16 @@ for key in pose_bins:
         dup_bins = [pose_bins.get(key)]
     elif pose_bins.get(key).votes == best_pose_bin.votes:
         dup_bins.append(pose_bins.get(key))
-print("Most Voted Pose: ", best_pose_bin.pose)
-print("Box Size: ", best_pose_bin.img_size)
 
-fig, ax = plot_rect(gray_query, best_pose_bin)
+print("Number of duplicate votes: ", len(dup_bins))
+
+img = cv2.drawKeypoints(gray_query, [kp[1] for kp in matching_keypoints], None, flags=4)
+plt.imshow(img)
+
+fig, ax = plt.subplots()
+for bin in dup_bins:
+    print("Most Voted Pose: ", best_pose_bin.pose, " with ", best_pose_bin.votes, " votes")
+    print("Box Size: ", best_pose_bin.img_size, "\n")
+    ax = plot_rect(gray_query, bin, ax)
 plt.show()
 print("done")

@@ -5,8 +5,7 @@ import cv2
 
 
 # VISUALIZATION ###############################################################
-def plot_rect(gray_img, pose_bin=PoseBin()):
-    fig, ax = plt.subplots()
+def plot_rect(gray_img, pose_bin=PoseBin(), ax=plt.axes()):
     img = cv2.drawKeypoints(gray_img, [x[1] for x in pose_bin.keypoint_pairs], None, None, flags=4)
     plt.imshow(img)
     pose = pose_bin.pose
@@ -24,4 +23,4 @@ def plot_rect(gray_img, pose_bin=PoseBin()):
                              IMG_WIDTH * pose[3], IMG_HEIGHT * pose[3], pose[2],
                              linewidth=4, edgecolor='r', facecolor='none')
     ax.add_patch(rect)
-    return fig, ax
+    return ax
