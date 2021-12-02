@@ -12,11 +12,11 @@ from PoseBin import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_20211027_170200.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/Test dataset/clutter/IMG_3485.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
-image_query_size = (len(gray_query[0]),len(gray_query))
+image_query_size = (len(gray_query[0]), len(gray_query))
 
 img_size_list = []
 img_centroid_list = []
@@ -62,7 +62,7 @@ test_size(matching_keypoints)
 print("Number of good matches: ", len(matching_keypoints))
 
 # Apply hough transform
-pose_bins = perform_hough_transform(matching_keypoints, 10, 2, 32)
+pose_bins = perform_hough_transform(matching_keypoints, 30, 2, 4)
 
 # Get most voted
 valid_bins = []  # A list of PoseBin objects
