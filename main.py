@@ -84,9 +84,12 @@ img = cv2.drawKeypoints(gray_query, [kp[1] for kp in matching_keypoints], None, 
 plt.imshow(img)
 
 fig, ax = plt.subplots()
+color_count = 0
+colors = ['r', 'b', 'g', 'y']
 for bin in dup_bins:
     print("Most Voted Pose: ", bin.pose, " with ", bin.votes, " votes")
-    print("Box Size: ", bin.img_size, "\n")
-    ax = plot_rect(gray_query, bin, ax)
+    print("Box Size: ", bin.img_size, " in ", colors[color_count], "\n")
+    ax = plot_rect(gray_query, bin, ax, colors[color_count % len(colors)])
+    color_count += 1
 plt.show()
 print("done")
