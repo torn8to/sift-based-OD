@@ -8,17 +8,19 @@ from SiftHelperFunctions import *
 from HoughTransform import *
 from PoseBin import *
 
+
+#def main():
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('../Data_Set/IMG_rotated_prajwal.jpg')  # Query Image
+image_query = cv2.imread('Car7.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
 img_size_list = []
 img_centroid_list = []
-with open('../Data_Set/training_data.pkl', 'rb') as inp:
+with open('../Data_Set-multiple-train/training_data.pkl', 'rb') as inp:
     data = pickle.load(inp)  # Open training data and load it
 
     temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
@@ -47,7 +49,7 @@ for m, n in matches:
         good_matches.append([m])
         # Store the matching keypoints in a tuple in a list
         matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],
-                                   img_size_list[m.trainIdx], img_centroid_list[m.trainIdx]))
+                                img_size_list[m.trainIdx], img_centroid_list[m.trainIdx]))
 
 # Every match has parameters
 # distance: the euclidean distance from the query descriptor to the training descriptor
@@ -57,7 +59,6 @@ for m, n in matches:
 
 # cv2.drawMatchesKnn expects list of lists as matches.
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
-
 count = 0
 pose_bins = perform_hough_transform(matching_keypoints)
 des_img_size = (0, 0)
@@ -65,9 +66,9 @@ keypoint_pairs = []
 valid_bins = []  # A list of PoseBin objects
 max_vote = 3
 for key in pose_bins:
-    if pose_bins.get(key).votes > 3:
+    if pose_bins.get(key).votes >= 3:
         valid_bins.append(pose_bins.get(key))
-        count += 1
+        count += 1    # Added count to get length of valid_bins
     if pose_bins.get(key).votes > max_vote:
         print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
         max_pose = key
@@ -92,8 +93,11 @@ rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2])) * x_shift - np
                     max_pose[1] + np.sin(np.deg2rad(max_pose[2])) * x_shift + np.cos(np.deg2rad(max_pose[2])) * y_shift)
 
 rect = patches.Rectangle(rect_left_corner,
-                         IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], max_pose[2],
-                         linewidth=4, edgecolor='r', facecolor='none')
+                        IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], max_pose[2],
+                        linewidth=4, edgecolor='r', facecolor='none')
 ax.add_patch(rect)
 plt.show()
-print("done")
+print("main done")
+
+
+#return valid_bins, count
