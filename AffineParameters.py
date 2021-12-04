@@ -1,6 +1,7 @@
 import numpy as np
 from main import *
 
+
 '''
 Function to generate A matrix from model points
 x and y are model points vectors
@@ -71,6 +72,7 @@ def Ext_Params(x):
 
 
 def AffineParameters(bin_number):
+    
     x_vec = []
     y_vec = []
     b_x = []
@@ -90,12 +92,6 @@ def AffineParameters(bin_number):
     [m1, m2, m3, m4, tx, ty] = Ext_Params(x)
 
     # After extracting Affine Parameters, we need to remove Outliers and repeat the process
-    print(m1)
-    print(m2)
-    print(m3)
-    print(m4)
-    print(tx)
-    print(ty)
 
     
     return m1, m2, m3, m4, tx, ty
@@ -111,4 +107,4 @@ def AffineParameters(bin_number):
 
     '''
 
-print("done")
+#print("done")
