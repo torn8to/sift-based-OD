@@ -5,8 +5,8 @@ import numpy as np
 def remove_outliers(bin_number):
     
     # Threshold values
-    x_ref = 132.8125 / 16
-    y_ref = 141.8125 / 16
+    x_ref = 132.8125 / 256
+    y_ref = 141.8125 / 256
 
     # Get the number of keypoint pairs in the bin
     num_of_kpp = len(valid_bins[bin_number].keypoint_pairs)
@@ -45,3 +45,11 @@ def remove_outliers(bin_number):
 
     valid_bins[bin_number].keypoint_pairs = [v for i,v in enumerate(valid_bins[bin_number].keypoint_pairs) if i not in frozenset(to_pop)]
     valid_bins[bin_number].votes = len(valid_bins[bin_number].keypoint_pairs)
+
+
+
+
+
+
+
+    
