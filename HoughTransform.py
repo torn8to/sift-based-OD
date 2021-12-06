@@ -10,18 +10,19 @@ import sys
 def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_breakpoint=2.0, pos_factor=32.0):
     # Generate Pose guess of keypoints
     pose_bins = {}
-    for kpM, kpQ, img_size, img_centroid in matching_keypoints:
+    for kpM, kpQ, obj_size, img_centroid, img_query_size in matching_keypoints:
 
         octaveM, layerM, scaleM = unpack_sift_octave(kpM)  # unpack octave information for model keypoint
         octaveQ, layerQ, scaleQ = unpack_sift_octave(kpQ)  # unpack octave information for query keypoint
 
         # Changed from LOWE
-        x_pos_breakpoint = img_size[0] * scaleQ / pos_factor  # determine x axis bucket size in pixels
-        y_pos_breakpoint = img_size[1] * scaleQ / pos_factor  # determine y axis bucket size in pixels
+        x_pos_breakpoint = img_query_size[0] * scaleQ / pos_factor  # determine x axis bucket size in pixels
+        y_pos_breakpoint = img_query_size[1] * scaleQ / pos_factor  # determine y axis bucket size in pixels
 
         pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
 
-        scale_diff = scaleM / scaleQ
+        # scale_diff = scaleM / scaleQ
+        scale_diff = kpQ.size/kpM.size  # testing using size instead of scale
         x_diff = kpQ.pt[0] - kpM.pt[0]
         y_diff = kpQ.pt[1] - kpM.pt[1]
         orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
@@ -42,7 +43,8 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
                           scale_breakpoint ** np.ceil(np.log(pose_estimate[3]) / np.log(scale_breakpoint))]
         if possible_scale[0] == possible_scale[1]:
             # Sometimes the scale adds the same value twice leading to duplicates in the pose bins
-            possible_scale[1] = possible_scale[1]**scale_breakpoint
+            # possible_scale[1] = possible_scale[1]**scale_breakpoint
+            possible_scale = [possible_scale[0]]
 
         for i in range(2):
             for j in range(2):
@@ -54,14 +56,9 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
                             """
                             we update the vote
                             """
-                            # Update the vote
-                            pose_bins[pose].add_vote()
-                            # update the average object size
-                            pose_bins[pose].update_img_size(img_size)
-                            # update the keypoint list
-                            pose_bins[pose].add_keypoint_pair((kpM, kpQ))
+                            pose_bins[pose].update_posebin(obj_size, (kpM, kpQ))
 
                         except KeyError:
-                            pose_bins[pose] = PoseBin(pose, img_size, 1, [(kpM, kpQ)])
+                            pose_bins[pose] = PoseBin(pose, obj_size, 1, [(kpM, kpQ)])
 
     return pose_bins

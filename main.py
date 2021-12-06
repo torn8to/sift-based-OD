@@ -5,6 +5,7 @@ from matplotlib import patches as patches
 import pickle
 from cv2 import sort
 from SiftHelperFunctions import *
+from VisualHelperFunctions import *
 from HoughTransform import *
 from PoseBin import *
 
@@ -13,10 +14,13 @@ from PoseBin import *
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
-image_query = cv2.imread('Car7.jpg')  # Query Image
+
+image_query = cv2.imread('../Data_Set/Test dataset/clutter/IMG_3485.JPG')  # Query Image
+
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
+image_query_size = (len(gray_query[0]), len(gray_query))
 
 img_size_list = []
 img_centroid_list = []
@@ -41,6 +45,12 @@ des = temp_des
 bf = cv2.BFMatcher()
 matches = bf.knnMatch(des_query, des, k=2)  # query ,database,nearest neighbors
 
+# Every match has parameters
+# distance: the euclidean distance from the query descriptor to the training descriptor
+# imgIdx: Train image index
+# queryIdx: query descriptor index
+# trainIdx: train descriptor index
+
 # Apply ratio test
 good_matches = []
 matching_keypoints = []  # Tuples of (kpM, kpQ)
@@ -49,53 +59,49 @@ for m, n in matches:
         good_matches.append([m])
         # Store the matching keypoints in a tuple in a list
         matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],
-                                img_size_list[m.trainIdx], img_centroid_list[m.trainIdx]))
+                                   img_size_list[m.trainIdx], img_centroid_list[m.trainIdx],image_query_size))
 
-# Every match has parameters
-# distance: the euclidean distance from the query descriptor to the training descriptor
-# imgIdx: Train image index
-# queryIdx: query descriptor index
-# trainIdx: train descriptor index
+
+# Make sure size and scale give similar results
+test_size(matching_keypoints)
+print("Number of good matches: ", len(matching_keypoints))
 
 # cv2.drawMatchesKnn expects list of lists as matches.
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 count = 0
-pose_bins = perform_hough_transform(matching_keypoints)
-des_img_size = (0, 0)
-keypoint_pairs = []
+# Apply hough transform
+pose_bins = perform_hough_transform(matching_keypoints, 30, 2, 4)
+
+# Get most voted
 valid_bins = []  # A list of PoseBin objects
 max_vote = 3
+best_pose_bin = PoseBin()
+dup_bins = []
 for key in pose_bins:
     if pose_bins.get(key).votes >= 3:
         valid_bins.append(pose_bins.get(key))
         count += 1    # Added count to get length of valid_bins
-    if pose_bins.get(key).votes > max_vote:
-        print(pose_bins.get(key).votes, " votes for pose ", pose_bins.get(key))
-        max_pose = key
-        max_vote = pose_bins.get(key).votes
-        des_img_size = pose_bins.get(key).img_size
-        keypoint_pairs = pose_bins.get(key).keypoint_pairs
-print("Most Voted Pose: ", max_pose)
-print("Box Size: ", des_img_size)
+    if pose_bins.get(key).votes > best_pose_bin.votes:
+        best_pose_bin = pose_bins.get(key)
+        dup_bins = [pose_bins.get(key)]
+    elif pose_bins.get(key).votes == best_pose_bin.votes:
+        dup_bins.append(pose_bins.get(key))
 
-# VISUALIZATION ###############################################################
-fig, ax = plt.subplots()
-img = cv2.drawKeypoints(gray_query, [x[1] for x in keypoint_pairs], None, None, flags=4)
+
+print("Number of duplicate votes: ", len(dup_bins))
+
+img = cv2.drawKeypoints(gray_query, [kp[1] for kp in matching_keypoints], None, flags=4)
 plt.imshow(img)
-# add box to image
-IMG_WIDTH = des_img_size[0]
-IMG_HEIGHT = des_img_size[1]
-x_shift = -IMG_WIDTH * max_pose[3] / 2
-y_shift = -IMG_HEIGHT * max_pose[3] / 2
 
-# Determining the top left corner of the triangle with rotation
-rect_left_corner = (max_pose[0] + np.cos(np.deg2rad(max_pose[2])) * x_shift - np.sin(np.deg2rad(max_pose[2])) * y_shift,
-                    max_pose[1] + np.sin(np.deg2rad(max_pose[2])) * x_shift + np.cos(np.deg2rad(max_pose[2])) * y_shift)
+fig, ax = plt.subplots()
+color_count = 0
+colors = ['r', 'b', 'g', 'y']
+for bin in dup_bins:
+    print("Most Voted Pose: ", bin.pose, " with ", bin.votes, " votes")
+    print("Box Size: ", bin.img_size, " in ", colors[color_count % len(colors)], "\n")
+    ax = plot_rect(gray_query, bin, ax, colors[color_count % len(colors)])
+    color_count += 1
 
-rect = patches.Rectangle(rect_left_corner,
-                        IMG_WIDTH * max_pose[3], IMG_HEIGHT * max_pose[3], max_pose[2],
-                        linewidth=4, edgecolor='r', facecolor='none')
-ax.add_patch(rect)
 plt.show()
 print("main done")
 
