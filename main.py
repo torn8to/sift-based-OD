@@ -9,10 +9,14 @@ from VisualHelperFunctions import *
 from HoughTransform import *
 from PoseBin import *
 
+
+#def main():
 # Initiate SIFT detector
 sift = cv2.SIFT_create()
 
+
 image_query = cv2.imread('../Data_Set/Test dataset/clutter/IMG_3485.JPG')  # Query Image
+
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
@@ -20,7 +24,7 @@ image_query_size = (len(gray_query[0]), len(gray_query))
 
 img_size_list = []
 img_centroid_list = []
-with open('../Data_Set/training_data.pkl', 'rb') as inp:
+with open('../Data_Set-multiple-train/training_data.pkl', 'rb') as inp:
     data = pickle.load(inp)  # Open training data and load it
 
     temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
@@ -57,10 +61,14 @@ for m, n in matches:
         matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],
                                    img_size_list[m.trainIdx], img_centroid_list[m.trainIdx],image_query_size))
 
+
 # Make sure size and scale give similar results
 test_size(matching_keypoints)
 print("Number of good matches: ", len(matching_keypoints))
 
+# cv2.drawMatchesKnn expects list of lists as matches.
+# img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
+count = 0
 # Apply hough transform
 pose_bins = perform_hough_transform(matching_keypoints, 30, 2, 4)
 
@@ -72,11 +80,13 @@ dup_bins = []
 for key in pose_bins:
     if pose_bins.get(key).votes >= 3:
         valid_bins.append(pose_bins.get(key))
+        count += 1    # Added count to get length of valid_bins
     if pose_bins.get(key).votes > best_pose_bin.votes:
         best_pose_bin = pose_bins.get(key)
         dup_bins = [pose_bins.get(key)]
     elif pose_bins.get(key).votes == best_pose_bin.votes:
         dup_bins.append(pose_bins.get(key))
+
 
 print("Number of duplicate votes: ", len(dup_bins))
 
@@ -91,5 +101,9 @@ for bin in dup_bins:
     print("Box Size: ", bin.img_size, " in ", colors[color_count % len(colors)], "\n")
     ax = plot_rect(gray_query, bin, ax, colors[color_count % len(colors)])
     color_count += 1
+
 plt.show()
-print("done")
+print("main done")
+
+
+#return valid_bins, count
