@@ -88,14 +88,19 @@ def AffineParameters(bin_number):
     A = Gen_A(x_vec, y_vec, bin_number)
     #b = [2.3, 4.3]
     b = Gen_b(b_x, b_y, bin_number)
-    x = Calc_x(A, b)
-    [m1, m2, m3, m4, tx, ty] = Ext_Params(x)
 
-    # After extracting Affine Parameters, we need to remove Outliers and repeat the process
+    if A:
+        x = Calc_x(A, b)
+        [m1, m2, m3, m4, tx, ty] = Ext_Params(x)
 
-    
-    return m1, m2, m3, m4, tx, ty
+        # After extracting Affine Parameters, we need to remove Outliers and repeat the process
 
+        
+        return m1, m2, m3, m4, tx, ty       
+
+    else: 
+
+        return 0, 0, 0, 0, 0, 0
     '''
     Algorithm
 
