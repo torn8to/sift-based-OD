@@ -15,7 +15,7 @@ from AffineParameters import *
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('../Data_Set/Test dataset/clutter/IMG_3485.JPG')  # Query Image
+image_query = cv2.imread('../Data_Set/BlurredandDark.jpg')  # Query Image
 
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
@@ -70,7 +70,10 @@ print("Number of good matches: ", len(matching_keypoints))
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 count = 0
 # Apply hough transform
-pose_bins = perform_hough_transform(matching_keypoints, 30, 2, 4)
+angle_factor = 30
+scale_factor = 2
+pos_factor = 8
+pose_bins = perform_hough_transform(matching_keypoints, angle_factor, scale_factor, pos_factor)
 
 # Get most voted
 valid_bins = []  # A list of PoseBin objects
@@ -100,22 +103,32 @@ print("main done")
 
 
 ## Applying Affine parameters
-max_vote = 3
-best_pose_bin = PoseBin()
-dup_bins = []
-remaining_bins = []
-for pose_bin in valid_bins:
-    pose_bin = AffineParameters(pose_bin)
-    pose_bin = remove_outliers(pose_bin, image_query_size)
-    if pose_bin.votes >= 3:
-        remaining_bins.append(pose_bin)
-        count += 1  # Added count to get length of valid_bins
-    if pose_bin.votes > best_pose_bin.votes:
-        best_pose_bin = pose_bin
-        dup_bins = [pose_bin]
-    elif pose_bin.votes == best_pose_bin.votes:
-        dup_bins.append(pose_bin)
+update = True
+num_updates = 0
+while update:
+    update = False
+    max_vote = 3
+    best_pose_bin = PoseBin()
+    dup_bins = []
+    remaining_bins = []
+    for pose_bin in valid_bins:
+        AffineParameters(pose_bin)  # Get Affine Parameters
+        # Remove invalid keypoints
+        pose_bin, change = remove_outliers(pose_bin, image_query_size, pos_factor*4, pos_factor*4)
+        if change:  # if we changed the keypoints, run it again
+            update = True
+        if pose_bin.votes >= 3:  # Get a list of remaining valid bins
+            remaining_bins.append(pose_bin)
+            count += 1  # Added count to get length of valid_bins
+        if pose_bin.votes > best_pose_bin.votes:  # Find which bins have the most votes
+            best_pose_bin = pose_bin
+            dup_bins = [pose_bin]
+        elif pose_bin.votes == best_pose_bin.votes:  # store other bins with most votes
+            dup_bins.append(pose_bin)
+    valid_bins = remaining_bins  # remaining bins are valid
+    num_updates += 1
 
+print(num_updates)
 fig, ax = plt.subplots()
 plot_multiple_rect(gray_query, dup_bins, ax)
 plt.show()

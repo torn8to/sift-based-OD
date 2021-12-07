@@ -76,12 +76,49 @@ def Ext_Params(x):
     return m1, m2, m3, m4, tx, ty
 
 
-def remove_outliers(posebin, image_query_size):
+'''
+Algorithm
+
+We will work with clusters formed in HT
+
+Step 1: Import x and y points of query image and model image
+Step 2: Calculate affine parameters
+Step 3: Repeat the process for all the clusters
+
+'''
+def AffineParameters(posebin):
+    x_vec = []
+    y_vec = []
+    b_x = []
+    b_y = []
+
+    for i in range(posebin.votes):
+        x_vec.append(posebin.keypoint_pairs[i][0].pt[0])
+        y_vec.append(posebin.keypoint_pairs[i][0].pt[1])
+        b_x.append(posebin.keypoint_pairs[i][1].pt[0])
+        b_y.append(posebin.keypoint_pairs[i][1].pt[1])
+
+    A = Gen_A(x_vec, y_vec, posebin.votes)
+    # b = [2.3, 4.3]
+    b = Gen_b(b_x, b_y, posebin.votes)
+
+    if A:
+        x = Calc_x(A, b)
+        [m1, m2, m3, m4, tx, ty] = Ext_Params(x)
+
+        # After extracting Affine Parameters, we need to remove Outliers and repeat the process
+        posebin.affine_parameters = [m1, m2, m3, m4, tx, ty]
+        [m1, m2, m3, m4, tx, ty]
+    else:
+        [0, 0, 0, 0, 0, 0]
+
+
+def remove_outliers(posebin, image_query_size, x_factor=8, y_factor=8):
     # Threshold values
     # x_ref = 132.8125 / 256
     # y_ref = 141.8125 / 256
-    x_ref = image_query_size[0] * posebin.pose[3] / 8
-    y_ref = image_query_size[1] * posebin.pose[3] / 8
+    x_ref = image_query_size[0] * posebin.pose[3] / x_factor
+    y_ref = image_query_size[1] * posebin.pose[3] / y_factor
 
     # Get the number of keypoint pairs in the bin
     num_of_kpp = len(posebin.keypoint_pairs)
@@ -116,49 +153,9 @@ def remove_outliers(posebin, image_query_size):
         # Decision
         if abs(u_AP - u_image) > x_ref or abs(v_AP - v_image) > y_ref:
             to_pop.append(i)
-
+    update = len(to_pop) > 0
     posebin.keypoint_pairs = [v for i, v in enumerate(posebin.keypoint_pairs) if
                                           i not in frozenset(to_pop)]
     posebin.votes = len(posebin.keypoint_pairs)
-    return posebin
-
-# print("done")
-
-def AffineParameters(posebin):
-    x_vec = []
-    y_vec = []
-    b_x = []
-    b_y = []
-
-    for i in range(posebin.votes):
-        x_vec.append(posebin.keypoint_pairs[i][0].pt[0])
-        y_vec.append(posebin.keypoint_pairs[i][0].pt[1])
-        b_x.append(posebin.keypoint_pairs[i][1].pt[0])
-        b_y.append(posebin.keypoint_pairs[i][1].pt[1])
-
-    A = Gen_A(x_vec, y_vec, posebin.votes)
-    # b = [2.3, 4.3]
-    b = Gen_b(b_x, b_y, posebin.votes)
-
-    if A:
-        x = Calc_x(A, b)
-        [m1, m2, m3, m4, tx, ty] = Ext_Params(x)
-
-        # After extracting Affine Parameters, we need to remove Outliers and repeat the process
-        posebin.affine_parameters = [m1, m2, m3, m4, tx, ty]
-        return posebin
-
-    else:
-
-        return 0, 0, 0, 0, 0, 0
-    '''
-    Algorithm
-
-    We will work with clusters formed in HT
-
-    Step 1: Import x and y points of query image and model image
-    Step 2: Calculate affine parameters
-    Step 3: Repeat the process for all the clusters
-
-    '''
+    return posebin, update
 

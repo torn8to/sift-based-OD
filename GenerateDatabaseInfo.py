@@ -32,8 +32,8 @@ def scan_folder(folder_path):
             kp, des = sift.detectAndCompute(gray_img, None)
             img_size = (len(gray_img[0]), len(gray_img))
 
-            centroid = get_centroid(kp)
-            # centroid = (img_size[0]/2, img_size[1]/2)
+            # centroid = get_centroid(kp)
+            centroid = (img_size[0]/2, img_size[1]/2)
 
             temp_kp = make_temp_kp(kp)
             datum = [temp_kp, des, img_size, centroid, path1 + file]
