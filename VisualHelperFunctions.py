@@ -26,4 +26,5 @@ def plot_rect(gray_img, pose_bin=PoseBin(), ax=plt.axes(), color='r'):
                              IMG_WIDTH * scale, IMG_HEIGHT * scale, ori,
                              linewidth=4, edgecolor=color, facecolor='none')
     ax.add_patch(rect)
+
     return ax
