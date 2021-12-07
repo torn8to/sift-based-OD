@@ -24,7 +24,7 @@ def plot_rect(gray_img, pose_bin=PoseBin(), ax=plt.axes(), color='r'):
 
     rect = patches.Rectangle(rect_left_corner,
                              IMG_WIDTH * scale, IMG_HEIGHT * scale, ori,
-                             linewidth=4, edgecolor=color, facecolor='none')
+                             linewidth=2, edgecolor=color, facecolor='none')
     ax.add_patch(rect)
 
     return ax
@@ -32,7 +32,7 @@ def plot_rect(gray_img, pose_bin=PoseBin(), ax=plt.axes(), color='r'):
 
 def plot_multiple_rect(gray_img, dup_bins, ax=plt.axes()):
     color_count = 0
-    colors = ['r', 'b', 'g', 'y', 'c', 'm', 'y', 'k', 'w']
+    colors = ['r', 'b', 'g', 'y', 'c', 'm', 'k', 'w']
     for pose_bin in dup_bins:
         print("Most Voted Pose: ", pose_bin.pose, " with ", pose_bin.votes, " votes")
         print("Box Size: ", pose_bin.img_size, " in ", colors[color_count % len(colors)], "\n")
