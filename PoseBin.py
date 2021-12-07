@@ -8,6 +8,7 @@ class PoseBin:
         self.img_size = img_size  # (width, height)
         self.votes = votes
         self.keypoint_pairs = keypoint_pairs
+        self.affine_parameters = []
 
     def update_posebin(self, img_size, pair):
         self.update_img_size(img_size)

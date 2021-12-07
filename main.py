@@ -8,7 +8,7 @@ from SiftHelperFunctions import *
 from VisualHelperFunctions import *
 from HoughTransform import *
 from PoseBin import *
-
+from AffineParameters import *
 
 #def main():
 # Initiate SIFT detector
@@ -24,7 +24,7 @@ image_query_size = (len(gray_query[0]), len(gray_query))
 
 img_size_list = []
 img_centroid_list = []
-with open('../Data_Set-multiple-train/training_data.pkl', 'rb') as inp:
+with open('../Data_Set/training_data.pkl', 'rb') as inp:
     data = pickle.load(inp)  # Open training data and load it
 
     temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
@@ -59,7 +59,7 @@ for m, n in matches:
         good_matches.append([m])
         # Store the matching keypoints in a tuple in a list
         matching_keypoints.append((kp[m.trainIdx], kp_query[m.queryIdx],
-                                   img_size_list[m.trainIdx], img_centroid_list[m.trainIdx],image_query_size))
+                                   img_size_list[m.trainIdx], img_centroid_list[m.trainIdx], image_query_size))
 
 
 # Make sure size and scale give similar results
@@ -94,16 +94,30 @@ img = cv2.drawKeypoints(gray_query, [kp[1] for kp in matching_keypoints], None, 
 plt.imshow(img)
 
 fig, ax = plt.subplots()
-color_count = 0
-colors = ['r', 'b', 'g', 'y']
-for bin in dup_bins:
-    print("Most Voted Pose: ", bin.pose, " with ", bin.votes, " votes")
-    print("Box Size: ", bin.img_size, " in ", colors[color_count % len(colors)], "\n")
-    ax = plot_rect(gray_query, bin, ax, colors[color_count % len(colors)])
-    color_count += 1
+plot_multiple_rect(gray_query, dup_bins, ax)
 
-plt.show()
 print("main done")
 
 
-#return valid_bins, count
+## Applying Affine parameters
+max_vote = 3
+best_pose_bin = PoseBin()
+dup_bins = []
+remaining_bins = []
+for pose_bin in valid_bins:
+    pose_bin = AffineParameters(pose_bin)
+    pose_bin = remove_outliers(pose_bin, image_query_size)
+    if pose_bin.votes >= 3:
+        remaining_bins.append(pose_bin)
+        count += 1  # Added count to get length of valid_bins
+    if pose_bin.votes > best_pose_bin.votes:
+        best_pose_bin = pose_bin
+        dup_bins = [pose_bin]
+    elif pose_bin.votes == best_pose_bin.votes:
+        dup_bins.append(pose_bin)
+
+fig, ax = plt.subplots()
+plot_multiple_rect(gray_query, dup_bins, ax)
+plt.show()
+
+print("affine parameters done")
