@@ -15,7 +15,7 @@ from AffineParameters import *
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('../Data_Set/BlurredandDark.jpg')  # Query Image
+image_query = cv2.imread('../Data_Set/3People_1Car.jpg')  # Query Image
 
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
@@ -70,9 +70,9 @@ print("Number of good matches: ", len(matching_keypoints))
 # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
 count = 0
 # Apply hough transform
-angle_factor = 30
+angle_factor = 10
 scale_factor = 2
-pos_factor = 8
+pos_factor = 32
 pose_bins = perform_hough_transform(matching_keypoints, angle_factor, scale_factor, pos_factor)
 
 # Get most voted
