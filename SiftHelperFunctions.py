@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from PoseBin import PoseBin
 
 
 def unpack_sift_octave(kpt):
@@ -73,3 +74,19 @@ def test_size(matching_keypoints):
         val2 = 2 ** np.ceil(np.log(m_kp.size/t_kp.size) / np.log(2))
         if val1 != t_scale/m_scale and val2 != t_scale/m_scale:
             print("Size factor: ", m_kp.size/t_kp.size, ", Scale factor: ", t_scale/m_scale)
+
+
+def average_poses(pose_list):
+    """
+    Takes in a list of poses and averages them based on their similar values
+    :param pose_list: list of poses, **not pose_bin**
+    :return:
+    """
+    first_pose = pose_list[0]
+    pose_list.remove(first_pose)
+    count = 1
+    for pose in pose_list:
+        for i in range(4):
+            pose[i] = (first_pose[i]*count + pose)/(count + 1)
+        count += 1
+    return first_pose
