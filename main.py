@@ -25,9 +25,10 @@ class Main:
         self.img_size_list = []
         self.img_centroid_list = []
         self.image_query_size = (0, 0)
+        _, self.ax = plt.subplots()
 
-    def get_query_features(self):
-        image_query = cv2.imread('../Test_image_14.jpeg')  # Query Image
+    def get_query_features(self, path):
+        image_query = cv2.imread(path)  # Query Image
 
         # Get image in gray scale
         self.gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
@@ -81,23 +82,23 @@ class Main:
         print("Number of good matches: ", len(self.matching_keypoints))
         return self.matching_keypoints
 
-    def apply_hough_transform(self):
+    def apply_hough_transform(self, min_votes=3):
         # cv2.drawMatchesKnn expects list of lists as matches.
         # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
         # Apply hough transform
-        angle_factor = 10
+        angle_factor = 30
         scale_factor = 2
-        pos_factor = 32
+        pos_factor = 4
         # Perform hough transform
         pose_bins = perform_hough_transform(self.matching_keypoints, angle_factor, scale_factor, pos_factor)
 
         # Get most voted
         valid_bins = []  # A list of PoseBin objects
         best_pose_bin = PoseBin()  # The best voted bin so far
-        best_pose_bin.votes = 3  # set its minimum vote to 3
+        best_pose_bin.votes = min_votes  # set its minimum vote to 3
         dup_bins = []
         for key in pose_bins:
-            if pose_bins.get(key).votes >= 3:  # all valid bins contain more than or equal to 3 votes
+            if pose_bins.get(key).votes >= min_votes:  # all valid bins contain more than or equal to 3 votes
                 valid_bins.append(pose_bins.get(key))
             if pose_bins.get(key).votes > best_pose_bin.votes:  # find the most voted for pose bin
                 best_pose_bin = pose_bins.get(key)
@@ -118,10 +119,9 @@ class Main:
             plot_multiple_rect(self.gray_query, dup_bins, ax)
 
             # plot single rectangle averaging pose
-            fig,ax = plt.subplots()
-            plot_single_rect_from_list(self.gray_query,dup_bins,ax)
+            plot_single_rect_from_list(self.gray_query, dup_bins, self.ax)
 
-        return dup_bins
+        return dup_bins, best_pose_bin.votes
         print("main done")
 
     def apply_affine_parameters(self):
@@ -162,20 +162,20 @@ class Main:
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
     main = Main()
-    main.get_query_features()
+    main.get_query_features('../Data_Set/Test dataset/other/2Objects.png')
     main.run_matcher()
-    dup_bins = main.apply_hough_transform()
+    dup_bins, max_votes = main.apply_hough_transform()
 
-    used_keypoints = []
-    for pose_bin in dup_bins:
-        used_keypoints.extend([kp_pair[1] for kp_pair in pose_bin.keypoint_pairs])
-    remove_list = []
-    for kp in used_keypoints:
-        for kp_info in main.matching_keypoints:
-            if kp == kp_info[1]:
-                main.matching_keypoints.remove(kp_info)
-                break
-
-    dup_bins = main.apply_hough_transform()
-    plt.show()
+    # used_keypoints = []
+    # for pose_bin in dup_bins:
+    #     used_keypoints.extend([kp_pair[1] for kp_pair in pose_bin.keypoint_pairs])
+    # remove_list = []
+    # for kp in used_keypoints:
+    #     for kp_info in main.matching_keypoints:
+    #         if kp == kp_info[1]:
+    #             main.matching_keypoints.remove(kp_info)
+    #             break
+    #
+    # dup_bins = main.apply_hough_transform(max(max_votes/10, 3))
+    # plt.show()
 
