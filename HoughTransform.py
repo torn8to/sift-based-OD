@@ -7,7 +7,7 @@ from PoseBin import *
 import sys
 
 
-def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_breakpoint=2.0, pos_factor=32.0):
+def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_breakpoint=2.0, pos_factor=32.0, paper=False):
     # Generate Pose guess of keypoints
     pose_bins = {}
     for kpM, kpQ, obj_size, img_centroid, img_query_size in matching_keypoints:
@@ -22,22 +22,22 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
         pose_estimate = (0, 0, 0, 0)  # Pose consists of x,y,orientation,scale for the centroid of the object
 
         # scale_diff = scaleM / scaleQ
-        scale_diff = kpQ.size / kpM.size  # testing using size instead of scale
+        if paper:
+            scale_diff = kpQ.size / kpM.size  # testing using size instead of scale
+            v = (img_centroid[0] - kpM.pt[0], img_centroid[1] - kpM.pt[1])
+            orientation_diff = normalize_angle(-kpM.angle + kpQ.angle)
+            v = np.matmul([[np.cos(np.deg2rad(orientation_diff)), -np.sin(np.deg2rad(orientation_diff))],
+                           [np.sin(np.deg2rad(orientation_diff)), np.cos(np.deg2rad(orientation_diff))]], v)
+            obj_centroid = (v[0] + kpQ.pt[0], v[1] + kpQ.pt[1])
 
-        v = (img_centroid[0] - kpM.pt[0], img_centroid[1] - kpM.pt[1])
-        orientation_diff = normalize_angle(-kpM.angle + kpQ.angle)
-        v = np.matmul([[np.cos(np.deg2rad(orientation_diff)), -np.sin(np.deg2rad(orientation_diff))],
-                       [np.sin(np.deg2rad(orientation_diff)), np.cos(np.deg2rad(orientation_diff))]], v)
-        obj_centroid = (v[0] + kpQ.pt[0], v[1] + kpQ.pt[1])
+            pose_estimate = (obj_centroid[0], obj_centroid[1], orientation_diff, scale_diff)
+        else:
+            scale_diff = kpQ.size / kpM.size  # testing using size instead of scale
+            x_diff = kpQ.pt[0] - kpM.pt[0]
+            y_diff = kpQ.pt[1] - kpM.pt[1]
+            orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
 
-        pose_estimate = (obj_centroid[0], obj_centroid[1], orientation_diff, scale_diff)
-
-        # scale_diff = kpQ.size / kpM.size  # testing using size instead of scale
-        # x_diff = kpQ.pt[0] - kpM.pt[0]
-        # y_diff = kpQ.pt[1] - kpM.pt[1]
-        # orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
-        #
-        # pose_estimate = (img_centroid[0] + x_diff, img_centroid[1] + y_diff, orientation_diff, scale_diff)
+            pose_estimate = (img_centroid[0] + x_diff, img_centroid[1] + y_diff, orientation_diff, scale_diff)
 
         # Get bucket locations
         possible_x_pos = [int(np.floor(pose_estimate[0] / x_pos_breakpoint) * x_pos_breakpoint),

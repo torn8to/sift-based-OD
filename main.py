@@ -82,7 +82,7 @@ class Main:
         print("Number of good matches: ", len(self.matching_keypoints))
         return self.matching_keypoints
 
-    def apply_hough_transform(self, min_votes=3):
+    def apply_hough_transform(self, min_votes=3, paper=False):
         # cv2.drawMatchesKnn expects list of lists as matches.
         # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
         # Apply hough transform
@@ -90,7 +90,7 @@ class Main:
         scale_factor = 2
         pos_factor = 4
         # Perform hough transform
-        pose_bins = perform_hough_transform(self.matching_keypoints, angle_factor, scale_factor, pos_factor)
+        pose_bins = perform_hough_transform(self.matching_keypoints, angle_factor, scale_factor, pos_factor, paper)
 
         # Get most voted
         valid_bins = []  # A list of PoseBin objects
@@ -162,9 +162,9 @@ class Main:
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
     main = Main()
-    main.get_query_features('../Data_Set/Test dataset/clutter/IMG_3500 1.JPG')
+    main.get_query_features('../Data_Set/3People_1Car.jpg')
     main.run_matcher()
-    dup_bins, max_votes = main.apply_hough_transform()
+    dup_bins, max_votes = main.apply_hough_transform(3, False)
     plt.show()
 
     # used_keypoints = []
