@@ -21,14 +21,14 @@ from VisualHelperFunctions import *
 sift = cv2.SIFT_create()
 
 
-image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Data_Set/Test_DataSet/other/Test_image_16.jpg')  # Query Image
+image_query = cv2.imread('/home/prajwal/Desktop/cv_group_project/Data_Set/Test_DataSet/other/Test_image_09.jpg')  # Query Image
 rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
 gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
 kp_query, des_query = sift.detectAndCompute(gray_query, None)
 
 img_size_list = []
 img_centroid_list = []
-path = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/DatabaseInfo/car/training_data.pkl'
+path = '/home/prajwal/Desktop/cv_group_project/Data_Set/Train_DataSet/DatabaseInfo/standing/training_data.pkl'
 with open(path, 'rb') as inp:
     data = pickle.load(inp)
 
@@ -87,5 +87,6 @@ for i, key in enumerate(keys):
 final_pose = post_process(valid_bins)
 
 fig, ax = plot_rect(rgb_query, final_pose, keypoint_pairs)
+# fig, ax = plot_keypoint(rgb_query, keypoint_pairs)
 plt.show()
 print("done")

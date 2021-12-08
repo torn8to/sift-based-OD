@@ -25,8 +25,9 @@ def perform_hough_transform(matching_keypoints, image_query, bin_x=15, bin_y=15,
         # print(q_theta, m_theta)
         #translation and scaling
         scale = m_scale / q_scale                           ## scale the model keypoints to query keypoint
-        translated_x = (m_centroid[0] - m_x) * scale
-        translated_y = (m_centroid[1] - m_y) * scale
+        # scale = kpM.size/kpQ.size
+        translated_x = (m_centroid[0] - m_x) * (scale)
+        translated_y = (m_centroid[1] - m_y) * (scale)
         #rotation
         alpha = math.radians(q_theta - m_theta)
         rotated_x = math.cos(alpha) * translated_x - math.sin(alpha) * translated_y
