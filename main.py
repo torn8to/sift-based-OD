@@ -162,9 +162,10 @@ class Main:
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
     main = Main()
-    main.get_query_features('../Data_Set/Test dataset/other/2Objects.png')
+    main.get_query_features('../Data_Set/Test dataset/clutter/IMG_3500 1.JPG')
     main.run_matcher()
     dup_bins, max_votes = main.apply_hough_transform()
+    plt.show()
 
     # used_keypoints = []
     # for pose_bin in dup_bins:
