@@ -82,11 +82,11 @@ def average_poses(pose_list):
     :param pose_list: list of poses, **not pose_bin**
     :return:
     """
-    first_pose = pose_list[0]
-    pose_list.remove(first_pose)
+    first_pose = list(pose_list[0])
+    pose_list.remove(tuple(first_pose))
     count = 1
     for pose in pose_list:
         for i in range(4):
-            pose[i] = (first_pose[i]*count + pose)/(count + 1)
+            first_pose[i] = (first_pose[i]*count + pose[i])/(count + 1)
         count += 1
-    return first_pose
+    return tuple(first_pose)

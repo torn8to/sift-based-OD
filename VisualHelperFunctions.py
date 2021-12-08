@@ -2,6 +2,7 @@ from matplotlib import pyplot as plt
 from matplotlib import patches as patches
 from PoseBin import *
 import cv2
+from SiftHelperFunctions import average_poses
 
 
 # VISUALIZATION ###############################################################
@@ -39,3 +40,9 @@ def plot_multiple_rect(gray_img, dup_bins, ax=plt.axes()):
         ax = plot_rect(gray_img, pose_bin, ax, colors[color_count % len(colors)])
         color_count += 1
     return ax
+
+
+def plot_single_rect_from_list(gray_img, dup_bins, ax=plt.axes()):
+    pose_ideal = dup_bins[0]
+    pose_ideal.pose = average_poses([v.pose for v in dup_bins])
+    plot_rect(gray_img, pose_ideal, ax)

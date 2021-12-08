@@ -29,19 +29,20 @@ class Main:
     def get_query_features(self):
         image_query = cv2.imread('../Test_image_14.jpeg')  # Query Image
 
-        rgb_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2RGB)
+        # Get image in gray scale
         self.gray_query = cv2.cvtColor(image_query, cv2.COLOR_BGR2GRAY)
+        # identify sift keypoints and descriptors
         self.kp_query, self.des_query = sift.detectAndCompute(self.gray_query, None)
+        # Get the image size
         self.image_query_size = (len(self.gray_query[0]), len(self.gray_query))
 
-        img_size_list = []
-        img_centroid_list = []
+        # open the training data and decipher input
         with open('../Data_Set/training_data.pkl', 'rb') as inp:
             data = pickle.load(inp)  # Open training data and load it
 
             temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
-            self.img_size_list = [data[0][2]] * len(data[0][0])
-            self.img_centroid_list = [data[0][3]] * len(data[0][0])
+            self.img_size_list = [data[0][2]] * len(data[0][0])  # keep track of size of each model image
+            self.img_centroid_list = [data[0][3]] * len(data[0][0])  # keep track of centroid of each model image
             temp_des = data[0][1]  # the descriptor vector, grab the first element in the data set
             for datum in data[1:]:  # for the remaining elements append them to the previous two lists
                 temp_kp.extend(datum[0])  # have to use extend here, because we don't want cascading lists
@@ -80,7 +81,6 @@ class Main:
         print("Number of good matches: ", len(self.matching_keypoints))
         return self.matching_keypoints
 
-
     def apply_hough_transform(self):
         # cv2.drawMatchesKnn expects list of lists as matches.
         # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
@@ -88,36 +88,48 @@ class Main:
         angle_factor = 10
         scale_factor = 2
         pos_factor = 32
+        # Perform hough transform
         pose_bins = perform_hough_transform(self.matching_keypoints, angle_factor, scale_factor, pos_factor)
 
         # Get most voted
         valid_bins = []  # A list of PoseBin objects
-        best_pose_bin = PoseBin()
-        best_pose_bin.votes = 3
+        best_pose_bin = PoseBin()  # The best voted bin so far
+        best_pose_bin.votes = 3  # set its minimum vote to 3
         dup_bins = []
         for key in pose_bins:
-            if pose_bins.get(key).votes >= 3:
+            if pose_bins.get(key).votes >= 3:  # all valid bins contain more than or equal to 3 votes
                 valid_bins.append(pose_bins.get(key))
-            if pose_bins.get(key).votes > best_pose_bin.votes:
+            if pose_bins.get(key).votes > best_pose_bin.votes:  # find the most voted for pose bin
                 best_pose_bin = pose_bins.get(key)
                 dup_bins = [pose_bins.get(key)]
+            # keep track of other bins with similar number of votes
             elif pose_bins.get(key).votes == best_pose_bin.votes:
                 dup_bins.append(pose_bins.get(key))
 
         print("Number of duplicate votes: ", len(dup_bins))
 
-        img = cv2.drawKeypoints(self.gray_query, [kp[1] for kp in self.matching_keypoints], None, flags=4)
-        plt.imshow(img)
+        if len(dup_bins) > 0:
+            # show the image with all matching keypoints
+            img = cv2.drawKeypoints(self.gray_query, [kp[1] for kp in self.matching_keypoints], None, flags=4)
+            plt.imshow(img)
 
-        fig, ax = plt.subplots()
-        plot_multiple_rect(self.gray_query, dup_bins, ax)
+            # plot rectangles for each pose with maximum number of votes
+            fig, ax = plt.subplots()
+            plot_multiple_rect(self.gray_query, dup_bins, ax)
 
+            # plot single rectangle averaging pose
+            fig,ax = plt.subplots()
+            plot_single_rect_from_list(self.gray_query,dup_bins,ax)
+
+        return dup_bins
         print("main done")
 
-        ## Applying Affine parameters
+    def apply_affine_parameters(self):
+        # Applying Affine parameters
+        pos_factor = 32
         update = True
         num_updates = 0
-        while update:
+        while update:  # While we are eliminating outliers keep applying affine parameters
             update = False
             max_vote = 3
             best_pose_bin = PoseBin()
@@ -127,8 +139,7 @@ class Main:
                 AffineParameters(pose_bin)  # Get Affine Parameters
                 # Remove invalid keypoints
                 _, change = remove_outliers(pose_bin, self.image_query_size, pos_factor * 4, pos_factor * 4)
-                if change:  # if we changed the keypoints, run it again
-                    update = True
+                update = change or update  # if we changed the keypoints, set flag to true
                 if pose_bin.votes >= 3:  # Get a list of remaining valid bins
                     remaining_bins.append(pose_bin)
                 if pose_bin.votes > best_pose_bin.votes:  # Find which bins have the most votes
@@ -138,6 +149,7 @@ class Main:
                     dup_bins.append(pose_bin)
             valid_bins = remaining_bins  # remaining bins are valid
             num_updates += 1
+        # end while loop
 
         print(num_updates)
         fig, ax = plt.subplots()
@@ -152,5 +164,18 @@ if __name__ == "__main__":
     main = Main()
     main.get_query_features()
     main.run_matcher()
-    main.apply_hough_transform()
-    main.apply_affine_parameters()
+    dup_bins = main.apply_hough_transform()
+
+    used_keypoints = []
+    for pose_bin in dup_bins:
+        used_keypoints.extend([kp_pair[1] for kp_pair in pose_bin.keypoint_pairs])
+    remove_list = []
+    for kp in used_keypoints:
+        for kp_info in main.matching_keypoints:
+            if kp == kp_info[1]:
+                main.matching_keypoints.remove(kp_info)
+                break
+
+    dup_bins = main.apply_hough_transform()
+    plt.show()
+
