@@ -1,3 +1,5 @@
+## Old version of hough transform
+
 import math
 from SiftHelperFunctions import *
 from PoseBin import *
@@ -63,36 +65,9 @@ def perform_hough_transform(matching_keypoints, image_query, bin_x=15, bin_y=15,
                         pose = (a, b, c, d)
                         if (a < bin_x and b < bin_y and c < bin_theta and d < bin_sigma):
                             try:
-                                # count = hough_dict[a, b, c, d][0]
-                                # old_height = hough_dict[a, b, c, d][1][0]
-                                # old_width = hough_dict[a, b, c, d][1][1]
-                                # new_height = (old_height * count + m_size[0]) / (count + 1)
-                                # new_width = (old_width * count + m_size[1]) / (count + 1)
-                                # avg_shape = new_height, new_width
-                                # old_x = hough_dict[a, b, c, d][3][0][0]
-                                # old_y = hough_dict[a, b, c, d][3][0][1]
-                                # new_x = (old_x * count + q_x) / (count + 1)
-                                # new_y = (old_y * count + q_y) / (count + 1)
-                                # new_centroid = new_x, new_y
-                                # old_alpha = hough_dict[a, b, c, d][3][1]
-                                # new_alpha = (old_alpha * count + alpha) / (count + 1)
-                                # old_scale = hough_dict[a, b, c, d][3][2]
-                                # new_scale = (old_scale * count + scale) / (count + 1)
-                                # new_mean = new_centroid, new_alpha, new_scale
-
-                                # hough_dict[a, b, c, d][0] +=1
-                                # hough_dict[a, b, c, d][1] = avg_shape
-                                # hough_dict[a, b, c, d][2].append((kpM, kpQ))
-                                # hough_dict[a, b, c, d][3] = new_mean
+                                
                                 hough_dict[pose].update_posebin(q_centroid, alpha, scale, m_size, (kpM, kpQ))
-                                # hough_dict[pose].update_centroid(q_centroid)
-                                # hough_dict[pose].update_img_size(m_size)
-                                # hough_dict[pose].update_angle(alpha)
-                                # hough_dict[pose].update_scale(scale)
-                                # hough_dict[pose].add_keypoint_pair((kpM, kpQ))
-                                # hough_dict[pose].add_vote()
                             except KeyError:
                                 mean = q_centroid, alpha, scale
-                                # hough_dict[a, b, c, d] = [1, m_size, [kpM, kpQ], mean]
                                 hough_dict[pose] = PoseBin(pose, m_size, 1, [(kpM, kpQ)], mean)
     return hough_dict

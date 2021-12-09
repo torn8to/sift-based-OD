@@ -1,5 +1,4 @@
 import cv2
-import math
 
 # calculates the centroid for the keypoints generated from one training image
 def get_centroid(kp):

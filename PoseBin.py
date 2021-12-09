@@ -3,14 +3,15 @@ import numpy as np
 
 class PoseBin:
 
-    def __init__(self, pose, img_size=(100, 100), votes=0, keypoint_pairs=[], mean= ((0, 0), 0, 0)):
+    def __init__(self, pose, img_size=(100, 100), votes=0, keypoint_pairs=[], mean= (0, 0, 0, 0)):
         self.pose = pose  # (x, y, theta, scale)
         self.img_size = img_size  # (width, height)
         self.votes = votes
         self.keypoint_pairs = keypoint_pairs
-        self.centroid = mean[0]
-        self.angle = mean[1]
-        self.scale = mean[2]
+        self.centroid = mean[0], mean[1]
+        self.angle = mean[2]
+        self.scale = mean[3]
+        self.affine_parameters = []
 
     def add_keypoint_pair(self, pair):
         self.keypoint_pairs.append(pair)
@@ -41,12 +42,12 @@ class PoseBin:
         new_height = (old_height * self.votes + img_size[1]) / (self.votes + 1)
         self.img_size = (new_width, new_height)
 
-    def update_posebin(self, center, alpha, scale, img_size, pair):
-        self.update_centroid(center)
-        self.update_angle(alpha)
-        self.update_scale(scale)
+    def update_posebin(self, object_pose, img_size, keypoint_pair):
+        self.update_centroid((object_pose[0], object_pose[1]))
+        self.update_angle(object_pose[2])
+        self.update_scale(object_pose[3])
         self.update_img_size(img_size)
-        self.add_keypoint_pair(pair)
+        self.add_keypoint_pair(keypoint_pair)
         self.add_vote()
 
     def add_vote(self, new_votes=1):
