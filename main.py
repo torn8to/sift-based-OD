@@ -188,7 +188,7 @@ if __name__ == "__main__":
     main.run_matcher()
     main.apply_hough_transform(15) # Applies hough transform with 15x15x15x15 array for x, y, theta, sigma
     main.get_valid_bins(5)      # Gets bins having votes >= 5
-    main.apply_affine_parameters(4) # Gets bins with votes >= 5 after affine transformation
+    main.apply_affine_parameters(4) # Gets bins with votes >= 4 after affine transformation
     main.post_process()
     main.plot()
     plt.show()
