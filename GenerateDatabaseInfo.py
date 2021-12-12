@@ -23,7 +23,8 @@ def scan_folder(folder_path):
         else:
             _file_list.append(file)
             img = cv2.imread(folder_path + file)
-
+            max_dim = 1500
+            img = cv2.resize(img, (max_dim, int(max_dim*img.shape[0] / img.shape[1])))
             # image comparison
             gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             # need to do some more processing here
