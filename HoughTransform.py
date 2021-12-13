@@ -23,8 +23,9 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
 
         # scale_diff = scaleM / scaleQ
         if paper:
-            scale_diff = kpQ.size / kpM.size  # testing using size instead of scale
-            v = (img_centroid[0] - kpM.pt[0], img_centroid[1] - kpM.pt[1])
+            # scale_diff = kpM.size / kpQ.size
+            scale_diff = kpQ.size / kpM.size
+            v = ((img_centroid[0] - kpM.pt[0])*scale_diff, (img_centroid[1] - kpM.pt[1])*scale_diff)
             orientation_diff = normalize_angle(-kpM.angle + kpQ.angle)
             v = np.matmul([[np.cos(np.deg2rad(orientation_diff)), -np.sin(np.deg2rad(orientation_diff))],
                            [np.sin(np.deg2rad(orientation_diff)), np.cos(np.deg2rad(orientation_diff))]], v)
@@ -32,7 +33,7 @@ def perform_hough_transform(matching_keypoints, angle_breakpoint=10.0, scale_bre
 
             pose_estimate = (obj_centroid[0], obj_centroid[1], orientation_diff, scale_diff)
         else:
-            scale_diff = kpQ.size / kpM.size  # testing using size instead of scale
+            scale_diff = kpQ.size / kpM.size
             x_diff = kpQ.pt[0] - kpM.pt[0]
             y_diff = kpQ.pt[1] - kpM.pt[1]
             orientation_diff = normalize_angle(kpQ.angle - kpM.angle)
