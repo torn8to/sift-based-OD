@@ -9,6 +9,7 @@ from VisualHelperFunctions import *
 from HoughTransform import *
 from PoseBin import *
 from AffineParameters import *
+import os
 
 
 # def main():
@@ -146,34 +147,47 @@ class Main:
         print("affine parameters done")
         return dup_bins
 
-    def plot_rects(self, dup_bins, single=True, show_plot=True, show_kp=True):
+    def plot_rects(self, dup_bins, single=True, show_plot=True, show_kp=True, save_plot=None):
         if single:
             plot_single_rect_from_list(self.gray_query, dup_bins, self.ax, show_kp)
         else:
             plot_multiple_rect(self.gray_query, dup_bins, self.ax, show_kp)
         if show_plot:
             plt.show()
+        if save_plot is not None:
+            plt.savefig('results/image_' + str(save_plot))
+
+    def run(self, image_path, save_number, apply_affine=0):
+        self.get_query_features(image_path)
+        self.run_matcher()
+        dup_bins, max_votes = self.apply_hough_transform(3, True)
+        if apply_affine == 1:
+            dup_bins = self.apply_affine_parameters()
+            self.plot_rects(dup_bins, single=False, show_plot=False, show_kp=True,
+                            save_plot='affine_' + str(save_number))
+        else:
+            self.plot_rects(dup_bins, single=False, show_plot=False, show_kp=True,
+                            save_plot=str(save_number))
+
+
+def scan_folder(folder_path, count=0, affine=0):
+    _file_list = []
+    _data = []
+    listing = os.listdir(folder_path)
+    # listing.remove('.git')
+    for file in listing:
+        if os.path.isdir(folder_path + file):
+            scan_folder(folder_path + file + "/", count)
+        else:
+            main = Main()
+            main.run(folder_path + file, count, apply_affine=affine)
+            count += 1
 
 
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
-    main = Main()
-    main.get_query_features("../Data_Set/Test dataset/oclclusion/frame_579.jpg")
-    main.run_matcher()
-    dup_bins, max_votes = main.apply_hough_transform(3, True)
-    # dup_bins = main.apply_affine_parameters()
-    main.plot_rects(dup_bins, single=False, show_plot=True, show_kp=True)
-    # plt.show()
+    for i in range(2):
+        scan_folder("../Data_Set/Test dataset/", affine=i)
 
-    # used_keypoints = []
-    # for pose_bin in dup_bins:
-    #     used_keypoints.extend([kp_pair[1] for kp_pair in pose_bin.keypoint_pairs])
-    # remove_list = []
-    # for kp in used_keypoints:
-    #     for kp_info in main.matching_keypoints:
-    #         if kp == kp_info[1]:
-    #             main.matching_keypoints.remove(kp_info)
-    #             break
-    #
-    # dup_bins = main.apply_hough_transform(max(max_votes/10, 3))
-    # plt.show()
+    # main = Main()
+    # main.run("../Data_Set/Test dataset/oclclusion/frame_579.jpg", 1)
