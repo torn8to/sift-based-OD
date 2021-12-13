@@ -28,6 +28,9 @@ class Main:
         self.img_centroid_list = []
         self.image_query_size = (0, 0)
         self.ax = plt.axes()
+        self.angle_factor = 5
+        self.scale_factor = 2
+        self.pos_factor = 64
 
     def get_query_features(self, path):
         image_query = cv2.imread(path)  # Query Image
@@ -40,7 +43,7 @@ class Main:
         self.image_query_size = (len(self.gray_query[0]), len(self.gray_query))
 
         # open the training data and decipher input
-        with open('../Data_Set/training_data.pkl', 'rb') as inp:
+        with open('../Data_Set/training_data_standing.pkl', 'rb') as inp:
             data = pickle.load(inp)  # Open training data and load it
 
             temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
@@ -73,7 +76,7 @@ class Main:
         good_matches = []
         for m, n in matches:
             # print(m.distance)
-            if m.distance < 0.75 * n.distance or m.distance < 100:
+            if m.distance < 1 * n.distance or m.distance < 100:
                 good_matches.append([m])
                 # Store the matching keypoints in a tuple in a list
                 self.matching_keypoints.append((self.kp[m.trainIdx], self.kp_query[m.queryIdx],
@@ -88,11 +91,9 @@ class Main:
         # cv2.drawMatchesKnn expects list of lists as matches.
         # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
         # Apply hough transform
-        angle_factor = 20
-        scale_factor = 2
-        pos_factor = 16
         # Perform hough transform
-        pose_bins = perform_hough_transform(self.matching_keypoints, angle_factor, scale_factor, pos_factor, paper)
+        pose_bins = perform_hough_transform(self.matching_keypoints, self.angle_factor,
+                                            self.scale_factor, self.pos_factor, paper)
 
         # Get most voted
         best_pose_bin = PoseBin()  # The best voted bin so far
@@ -110,12 +111,13 @@ class Main:
 
         print("Number of duplicate votes: ", len(dup_bins))
 
+        for pose_bin in dup_bins:
+            print(pose_bin, " votes: ", pose_bin.votes)
         return dup_bins, best_pose_bin.votes
         print("main done")
 
     def apply_affine_parameters(self):
         # Applying Affine parameters
-        pos_factor = 32
         update = True
         num_updates = 0
         while update:  # While we are eliminating outliers keep applying affine parameters
@@ -127,7 +129,7 @@ class Main:
             for pose_bin in self.valid_bins:
                 AffineParameters(pose_bin)  # Get Affine Parameters
                 # Remove invalid keypoints
-                _, change = remove_outliers(pose_bin, self.image_query_size, pos_factor * 4, pos_factor * 4)
+                _, change = remove_outliers(pose_bin, self.image_query_size, self.pos_factor * 2, self.pos_factor * 2)
                 update = change or update  # if we changed the keypoints, set flag to true
                 if pose_bin.votes >= 3:  # Get a list of remaining valid bins
                     remaining_bins.append(pose_bin)
@@ -144,21 +146,23 @@ class Main:
         print("affine parameters done")
         return dup_bins
 
-    def plot_rects(self, dup_bins, single=True):
+    def plot_rects(self, dup_bins, single=True, show_plot=True):
         if single:
             plot_single_rect_from_list(self.gray_query, dup_bins, self.ax)
         else:
             plot_multiple_rect(self.gray_query, dup_bins, self.ax)
-        plt.show()
+        if show_plot:
+            plt.show()
 
 
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
     main = Main()
-    main.get_query_features("../Data_Set/Test dataset/Rotation/IMG_20211027_170134.jpg")
+    main.get_query_features("../Data_Set/Test dataset/oclclusion/frame_579.jpg")
     main.run_matcher()
     dup_bins, max_votes = main.apply_hough_transform(3, True)
-    main.plot_rects(dup_bins)
+    # dup_bins = main.apply_affine_parameters()
+    main.plot_rects(dup_bins, False)
     # plt.show()
 
     # used_keypoints = []
