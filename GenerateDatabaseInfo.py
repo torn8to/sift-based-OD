@@ -64,8 +64,8 @@ def get_files(folder_path):
 
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
-    path1 = '../Data_Set/train dataset/standing/'
+    path1 = '../Data_Set/train dataset/'
     data, file_list = scan_folder(path1, 1500, False)
-    save_loc = '../Data_Set/training_data_standing.pkl'
+    save_loc = '../Data_Set/training_data.pkl'
     save_object(data, save_loc)
     print("Data file saved: ", save_loc)

@@ -43,7 +43,7 @@ class Main:
         self.image_query_size = (len(self.gray_query[0]), len(self.gray_query))
 
         # open the training data and decipher input
-        with open('../Data_Set/training_data_standing.pkl', 'rb') as inp:
+        with open('../Data_Set/training_data.pkl', 'rb') as inp:
             data = pickle.load(inp)  # Open training data and load it
 
             temp_kp = data[0][0]  # temporary kp, grab the first element in the data set
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     main.run_matcher()
     dup_bins, max_votes = main.apply_hough_transform(3, True)
     # dup_bins = main.apply_affine_parameters()
-    main.plot_rects(dup_bins, False, True, False)
+    main.plot_rects(dup_bins, single=False, show_plot=True, show_kp=True)
     # plt.show()
 
     # used_keypoints = []
