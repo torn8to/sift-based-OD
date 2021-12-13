@@ -146,11 +146,11 @@ class Main:
         print("affine parameters done")
         return dup_bins
 
-    def plot_rects(self, dup_bins, single=True, show_plot=True):
+    def plot_rects(self, dup_bins, single=True, show_plot=True, show_kp=True):
         if single:
-            plot_single_rect_from_list(self.gray_query, dup_bins, self.ax)
+            plot_single_rect_from_list(self.gray_query, dup_bins, self.ax, show_kp)
         else:
-            plot_multiple_rect(self.gray_query, dup_bins, self.ax)
+            plot_multiple_rect(self.gray_query, dup_bins, self.ax, show_kp)
         if show_plot:
             plt.show()
 
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     main.run_matcher()
     dup_bins, max_votes = main.apply_hough_transform(3, True)
     # dup_bins = main.apply_affine_parameters()
-    main.plot_rects(dup_bins, False)
+    main.plot_rects(dup_bins, False, True, False)
     # plt.show()
 
     # used_keypoints = []

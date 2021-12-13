@@ -6,9 +6,11 @@ from SiftHelperFunctions import average_poses
 
 
 # VISUALIZATION ###############################################################
-def plot_rect(gray_img, pose_bin=PoseBin(), ax=plt.axes(), color='r'):
-    img = cv2.drawKeypoints(gray_img, [x[1] for x in pose_bin.keypoint_pairs], None, None, flags=4)
-    plt.imshow(img)
+def plot_rect(gray_img, pose_bin, ax, color='r', show_kp=True):
+    if show_kp:
+        show_keypoints(gray_img, pose_bin.keypoint_pairs, ax)
+    else:
+        plt.imshow(gray_img, cmap='gray')
     x_pose = pose_bin.pose[0]
     y_pose = pose_bin.pose[1]
     ori = pose_bin.pose[2]
@@ -31,16 +33,32 @@ def plot_rect(gray_img, pose_bin=PoseBin(), ax=plt.axes(), color='r'):
     return ax
 
 
-def plot_multiple_rect(gray_img, dup_bins, ax):
+def plot_multiple_rect(gray_img, dup_bins, ax, show_kp=True):
     color_count = 0
     colors = ['r', 'b', 'g', 'y', 'c', 'm', 'k', 'w']
     for pose_bin in dup_bins:
-        ax = plot_rect(gray_img, pose_bin, ax, colors[color_count % len(colors)])
+        ax = plot_rect(gray_img, pose_bin, ax, colors[color_count % len(colors)], show_kp)
         color_count += 1
     return ax
 
 
-def plot_single_rect_from_list(gray_img, dup_bins, ax):
+def plot_single_rect_from_list(gray_img, dup_bins, ax, show_kp=True):
     pose_ideal = dup_bins[0]
-    pose_ideal.pose = average_poses([v.pose for v in dup_bins])
+    pose_ideal.pose = average_poses([v.pose for v in dup_bins], show_kp)
     plot_rect(gray_img, pose_ideal, ax)
+
+
+def show_keypoints(rgb_query, keypoint_pairs, ax):
+    img = cv2.drawKeypoints(rgb_query, [x[1] for x in keypoint_pairs], None, flags=4)
+    plt.imshow(rgb_query, cmap='gray')
+
+    offset = 30
+    for kpM, kpQ in keypoint_pairs:
+        x = kpQ.pt[0] - offset
+        y = kpQ.pt[1] - offset
+        rect_left_corner = x, y
+        rect = patches.Rectangle(rect_left_corner,
+                            2*offset, 2*offset, 0,
+                            linewidth=0.5, edgecolor='b', facecolor='none')
+        ax.add_patch(rect)
+    return ax
