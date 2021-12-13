@@ -144,11 +144,11 @@ class Main:
         print("affine parameters done")
         return dup_bins
 
-    def plot_rects(self, dup_bins, single=true):
+    def plot_rects(self, dup_bins, single=True):
         if single:
-            plot_multiple_rect(self.gray_query, dup_bins, self.ax)
-        else:
             plot_single_rect_from_list(self.gray_query, dup_bins, self.ax)
+        else:
+            plot_multiple_rect(self.gray_query, dup_bins, self.ax)
         plt.show()
 
 
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     main = Main()
     main.get_query_features("../Data_Set/Test dataset/Rotation/IMG_20211027_170134.jpg")
     main.run_matcher()
-    dup_bins, max_votes = main.apply_hough_transform(3, False)
+    dup_bins, max_votes = main.apply_hough_transform(3, True)
     main.plot_rects(dup_bins)
     # plt.show()
 
