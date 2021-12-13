@@ -31,7 +31,7 @@ def plot_rect(gray_img, pose_bin=PoseBin(), ax=plt.axes(), color='r'):
     return ax
 
 
-def plot_multiple_rect(gray_img, dup_bins, ax=plt.axes()):
+def plot_multiple_rect(gray_img, dup_bins, ax):
     color_count = 0
     colors = ['r', 'b', 'g', 'y', 'c', 'm', 'k', 'w']
     for pose_bin in dup_bins:
@@ -42,7 +42,7 @@ def plot_multiple_rect(gray_img, dup_bins, ax=plt.axes()):
     return ax
 
 
-def plot_single_rect_from_list(gray_img, dup_bins, ax=plt.axes()):
+def plot_single_rect_from_list(gray_img, dup_bins, ax):
     pose_ideal = dup_bins[0]
     pose_ideal.pose = average_poses([v.pose for v in dup_bins])
     plot_rect(gray_img, pose_ideal, ax)

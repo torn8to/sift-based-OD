@@ -17,6 +17,8 @@ from AffineParameters import *
 class Main:
 
     def __init__(self):
+        self.valid_bins = []  # A list of PoseBin objects
+        self.matching_keypoints = []  # Tuples of (kpM, kpQ)
         self.kp = []
         self.des = []
         self.kp_query = []
@@ -25,7 +27,7 @@ class Main:
         self.img_size_list = []
         self.img_centroid_list = []
         self.image_query_size = (0, 0)
-        _, self.ax = plt.subplots()
+        self.ax = plt.axes()
 
     def get_query_features(self, path):
         image_query = cv2.imread(path)  # Query Image
@@ -69,9 +71,9 @@ class Main:
 
         # Apply ratio test
         good_matches = []
-        self.matching_keypoints = []  # Tuples of (kpM, kpQ)
         for m, n in matches:
-            if m.distance < 0.75 * n.distance or m.distance < 1.0:
+            # print(m.distance)
+            if m.distance < 0.75 * n.distance or m.distance < 100:
                 good_matches.append([m])
                 # Store the matching keypoints in a tuple in a list
                 self.matching_keypoints.append((self.kp[m.trainIdx], self.kp_query[m.queryIdx],
@@ -82,24 +84,23 @@ class Main:
         print("Number of good matches: ", len(self.matching_keypoints))
         return self.matching_keypoints
 
-    def apply_hough_transform(self, min_votes=3, paper=False):
+    def apply_hough_transform(self, min_votes=3, paper=True):
         # cv2.drawMatchesKnn expects list of lists as matches.
         # img = cv2.drawKeypoints(rgb_query, queryImage_kp, None, flags=2)
         # Apply hough transform
-        angle_factor = 30
+        angle_factor = 20
         scale_factor = 2
-        pos_factor = 4
+        pos_factor = 16
         # Perform hough transform
         pose_bins = perform_hough_transform(self.matching_keypoints, angle_factor, scale_factor, pos_factor, paper)
 
         # Get most voted
-        valid_bins = []  # A list of PoseBin objects
         best_pose_bin = PoseBin()  # The best voted bin so far
         best_pose_bin.votes = min_votes  # set its minimum vote to 3
         dup_bins = []
         for key in pose_bins:
             if pose_bins.get(key).votes >= min_votes:  # all valid bins contain more than or equal to 3 votes
-                valid_bins.append(pose_bins.get(key))
+                self.valid_bins.append(pose_bins.get(key))
             if pose_bins.get(key).votes > best_pose_bin.votes:  # find the most voted for pose bin
                 best_pose_bin = pose_bins.get(key)
                 dup_bins = [pose_bins.get(key)]
@@ -108,18 +109,6 @@ class Main:
                 dup_bins.append(pose_bins.get(key))
 
         print("Number of duplicate votes: ", len(dup_bins))
-
-        if len(dup_bins) > 0:
-            # show the image with all matching keypoints
-            img = cv2.drawKeypoints(self.gray_query, [kp[1] for kp in self.matching_keypoints], None, flags=4)
-            plt.imshow(img)
-
-            # plot rectangles for each pose with maximum number of votes
-            fig, ax = plt.subplots()
-            plot_multiple_rect(self.gray_query, dup_bins, ax)
-
-            # plot single rectangle averaging pose
-            plot_single_rect_from_list(self.gray_query, dup_bins, self.ax)
 
         return dup_bins, best_pose_bin.votes
         print("main done")
@@ -135,7 +124,7 @@ class Main:
             best_pose_bin = PoseBin()
             dup_bins = []
             remaining_bins = []
-            for pose_bin in valid_bins:
+            for pose_bin in self.valid_bins:
                 AffineParameters(pose_bin)  # Get Affine Parameters
                 # Remove invalid keypoints
                 _, change = remove_outliers(pose_bin, self.image_query_size, pos_factor * 4, pos_factor * 4)
@@ -152,20 +141,25 @@ class Main:
         # end while loop
 
         print(num_updates)
-        fig, ax = plt.subplots()
-        plot_multiple_rect(self.gray_query, dup_bins, ax)
-        plt.show()
-
         print("affine parameters done")
+        return dup_bins
+
+    def plot_rects(self, dup_bins, single=true):
+        if single:
+            plot_multiple_rect(self.gray_query, dup_bins, self.ax)
+        else:
+            plot_single_rect_from_list(self.gray_query, dup_bins, self.ax)
+        plt.show()
 
 
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
     main = Main()
-    main.get_query_features('../Data_Set/3People_1Car.jpg')
+    main.get_query_features("../Data_Set/Test dataset/Rotation/IMG_20211027_170134.jpg")
     main.run_matcher()
     dup_bins, max_votes = main.apply_hough_transform(3, False)
-    plt.show()
+    main.plot_rects(dup_bins)
+    # plt.show()
 
     # used_keypoints = []
     # for pose_bin in dup_bins:
@@ -179,4 +173,3 @@ if __name__ == "__main__":
     #
     # dup_bins = main.apply_hough_transform(max(max_votes/10, 3))
     # plt.show()
-
