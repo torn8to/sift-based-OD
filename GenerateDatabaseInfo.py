@@ -10,36 +10,44 @@ def save_object(obj, filename):
         pickle.dump(obj, outp, pickle.HIGHEST_PROTOCOL)
 
 
-def scan_folder(folder_path):
+def scan_folder(folder_path, max_dim=1000, single_image=False):
     _file_list = []
     _data = []
-    listing = os.listdir(folder_path)
-    # listing.remove('.git')
-    for file in listing:
-        if os.path.isdir(folder_path + file):
-            temp_data, temp_files = scan_folder(folder_path+file+"/")
-            _data.extend(temp_data)
-            _file_list.extend(temp_files)
-        else:
-            _file_list.append(file)
-            img = cv2.imread(folder_path + file)
-            max_dim = 1000
-            img = cv2.resize(img, (max_dim, int(max_dim*img.shape[0] / img.shape[1])))
-            # image comparison
-            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            # need to do some more processing here
-
-            # find the keypoints and descriptors with SIFT
-            kp, des = sift.detectAndCompute(gray_img, None)
-            img_size = (len(gray_img[0]), len(gray_img))
-
-            # centroid = get_centroid(kp)
-            centroid = (img_size[0]/2, img_size[1]/2)
-
-            temp_kp = make_temp_kp(kp)
-            datum = [temp_kp, des, img_size, centroid, path1 + file]
-            _data.append(datum)
+    if not single_image:
+        listing = os.listdir(folder_path)
+        # listing.remove('.git')
+        for file in listing:
+            if os.path.isdir(folder_path + file):
+                temp_data, temp_files = scan_folder(folder_path+file+"/")
+                _data.extend(temp_data)
+                _file_list.extend(temp_files)
+            else:
+                _file_list.append(file)
+                datum = analyze_image(folder_path+file, max_dim)
+                _data.append(datum)
+    else:
+        datum = analyze_image(folder_path, max_dim)
+        _data.append(datum)
     return _data, _file_list
+
+
+def analyze_image(path, max_dim=1000):
+    img = cv2.imread(path)
+    img = cv2.resize(img, (max_dim, int(max_dim * img.shape[0] / img.shape[1])))
+    # image comparison
+    gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # need to do some more processing here
+
+    # find the keypoints and descriptors with SIFT
+    kp, des = sift.detectAndCompute(gray_img, None)
+    img_size = (len(gray_img[0]), len(gray_img))
+
+    centroid = get_centroid(kp)
+    # centroid = (img_size[0]/2, img_size[1]/2)
+
+    temp_kp = make_temp_kp(kp)
+    datum = [temp_kp, des, img_size, centroid, path]
+    return datum
 
 
 def get_files(folder_path):
@@ -56,8 +64,8 @@ def get_files(folder_path):
 
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
-    path1 = '../Data_Set/train dataset/'
-    data, file_list = scan_folder(path1)
-    save_loc = '../Data_Set/training_data.pkl'
+    path1 = '../Data_Set/train dataset/car/20211212_212630000_iOS.jpg'
+    data, file_list = scan_folder(path1, 3000, True)
+    save_loc = '../Data_Set/training_data_car.pkl'
     save_object(data, save_loc)
     print("Data file saved: ", save_loc)
