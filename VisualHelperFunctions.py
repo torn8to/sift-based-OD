@@ -34,6 +34,7 @@ def plot_rect(gray_img, pose_bin, ax, color='r', show_kp=True):
 
 
 def plot_multiple_rect(gray_img, dup_bins, ax, show_kp=True):
+    ax.clear()
     color_count = 0
     colors = ['r', 'b', 'g', 'y', 'c', 'm', 'k', 'w']
     for pose_bin in dup_bins:

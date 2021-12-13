@@ -155,7 +155,7 @@ class Main:
         if show_plot:
             plt.show()
         if save_plot is not None:
-            plt.savefig('results/image_' + str(save_plot))
+            plt.savefig('results/' + str(save_plot))
 
     def run(self, image_path, save_number, apply_affine=0):
         self.get_query_features(image_path)
@@ -170,17 +170,18 @@ class Main:
                             save_plot=str(save_number))
 
 
-def scan_folder(folder_path, count=0, affine=0):
+def scan_folder(folder_path, folder_name, count=0, affine=0):
     _file_list = []
     _data = []
-    listing = os.listdir(folder_path)
+    total_path = folder_path + folder_name
+    listing = os.listdir(total_path)
     # listing.remove('.git')
     for file in listing:
-        if os.path.isdir(folder_path + file):
-            count = scan_folder(folder_path + file + "/", count)
+        if os.path.isdir(total_path + file):
+            count = scan_folder(total_path, file + "/", count, affine)
         else:
             main = Main()
-            main.run(folder_path + file, count, apply_affine=affine)
+            main.run(total_path + file, folder_name[0:-1] + "_" + str(count), apply_affine=affine)
             count += 1
     return count
 
@@ -188,7 +189,7 @@ def scan_folder(folder_path, count=0, affine=0):
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
     for i in range(2):
-        scan_folder("../Data_Set/Test dataset/", affine=i)
+        scan_folder("../Data_Set/", "Test dataset/", affine=1)
 
     # main = Main()
     # main.run("../Data_Set/Test dataset/oclclusion/frame_579.jpg", 1)
