@@ -29,9 +29,9 @@ class Main:
         self.img_centroid_list = []
         self.image_query_size = (0, 0)
         self.ax = plt.axes()
-        self.angle_factor = 5
+        self.angle_factor = 10
         self.scale_factor = 2
-        self.pos_factor = 64
+        self.pos_factor = 32
 
     def get_query_features(self, path):
         image_query = cv2.imread(path)  # Query Image
@@ -177,11 +177,12 @@ def scan_folder(folder_path, count=0, affine=0):
     # listing.remove('.git')
     for file in listing:
         if os.path.isdir(folder_path + file):
-            scan_folder(folder_path + file + "/", count)
+            count = scan_folder(folder_path + file + "/", count)
         else:
             main = Main()
             main.run(folder_path + file, count, apply_affine=affine)
             count += 1
+    return count
 
 
 if __name__ == "__main__":
