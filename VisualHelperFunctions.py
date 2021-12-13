@@ -35,8 +35,6 @@ def plot_multiple_rect(gray_img, dup_bins, ax):
     color_count = 0
     colors = ['r', 'b', 'g', 'y', 'c', 'm', 'k', 'w']
     for pose_bin in dup_bins:
-        print("Most Voted Pose: ", pose_bin.pose, " with ", pose_bin.votes, " votes")
-        print("Box Size: ", pose_bin.img_size, " in ", colors[color_count % len(colors)], "\n")
         ax = plot_rect(gray_img, pose_bin, ax, colors[color_count % len(colors)])
         color_count += 1
     return ax
