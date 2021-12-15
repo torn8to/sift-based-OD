@@ -184,7 +184,7 @@ class Main:
 if __name__ == "__main__":
     sift = cv2.SIFT_create()
     main = Main()
-    main.get_query_features('/home/prajwal/Desktop/cv_group_project/Data_Set/Test_DataSet/other/Test_image_09.jpg')
+    main.get_query_features('/home/prajwal/Desktop/cv_group_project/Data_Set/Test_DataSet/standing/random/random_6.jpg')
     main.run_matcher()
     main.apply_hough_transform(15) # Applies hough transform with 15x15x15x15 array for x, y, theta, sigma
     main.get_valid_bins(5)      # Gets bins having votes >= 5
