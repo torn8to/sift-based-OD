@@ -1,8 +1,14 @@
 # Sift-Implementation
 
-This is the final code we used for our project.  Our results for the sift detection algorithm are in this repository and if you would like to run this code make sure it is in the same directory as the Data_Set Repository.
+you can run the main.py file to find some test results
+This repo was developed as a recreation of methods layed by a paper by David G. Lowe you can find [here]{https://www.cs.ubc.ca/~lowe/papers/ijcv04.pdf}.
 
-To run decode just run at the main.P why file.  If you would like to change the image change the path location in the __name__==’main’ function.
-The GenerateDatabaseInfo.py file is meant to create the database of model keypoints and should not neeed to be run.
 
-The results folder contains the results of our experimentation.
+1. involves taking sparse sift keypioints over the image 
+2. Use a brute force feature matcher to find good matches by using knn taking M and comparing the distance of it too the second good match
+            - This is done by comapring the distance of a first match to a second match by a distance of .75 
+3.  this step involves taking a cluster hough transform from the identified.
+4.  from the following data the algorithim writes abounding box of various size and orientation
+
+
+
